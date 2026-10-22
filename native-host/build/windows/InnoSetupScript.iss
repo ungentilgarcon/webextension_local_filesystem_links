@@ -6,8 +6,11 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 
-SignTool=signtool
-#define AppVersion GetFileVersion("D:\github\webextension_local_filesystem_links\native-host\bin\win32\local-link-messaging-host\local-link-messaging-host.exe")
+#define NativeHostRoot AddBackslash(SourcePath) + "..\.."
+#define HostDirectory NativeHostRoot + "\bin\win32\local-link-messaging-host"
+#define HostExecutable HostDirectory + "\local-link-messaging-host.exe"
+#define HostIcon NativeHostRoot + "\src\addon_icon_48.ico"
+#define AppVersion GetFileVersion(HostExecutable)
 #define AppName "Local file links Native Messaging API Host"
 
 AppId={{318A38DD-A431-42F0-BBAB-58C330AC545F}
@@ -24,11 +27,11 @@ DefaultDirName={%USERPROFILE}\{#AppName}
 DisableDirPage=yes
 DefaultGroupName=Local file links Native Messaging API Host
 DisableProgramGroupPage=yes
-OutputDir=D:\github\webextension_local_filesystem_links\native-host\bin\win32
+OutputDir={#NativeHostRoot}\bin\win32
 OutputBaseFilename=native-app-setup
 Compression=lzma
-UninstallDisplayIcon=D:\github\webextension_local_filesystem_links\native-host\src\addon_icon_48.ico
-SetupIconFile=D:\github\webextension_local_filesystem_links\native-host\src\addon_icon_48.ico
+UninstallDisplayIcon={#HostIcon}
+SetupIconFile={#HostIcon}
 SolidCompression=yes
 PrivilegesRequired=lowest
 
@@ -39,9 +42,9 @@ Name: Visualc; Description: Install Visual C++ re-distributable (required for th
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "D:\github\webextension_local_filesystem_links\native-host\bin\win32\local-link-messaging-host\*"; DestDir: "{app}"
-Source: "D:\github\webextension_local_filesystem_links\native-host\src\webextension_local_filesystem_links_win.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\github\webextension_local_filesystem_links\native-host\build\windows\vcredist_x86.exe"; DestDir: "{app}"; AfterInstall: RunOtherInstaller; Tasks: Visualc; Flags: ignoreversion
+Source: "{#HostDirectory}\*"; DestDir: "{app}"
+Source: "{#NativeHostRoot}\src\webextension_local_filesystem_links_win.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#NativeHostRoot}\build\windows\vcredist_x86.exe"; DestDir: "{app}"; AfterInstall: RunOtherInstaller; Tasks: Visualc; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -191,4 +194,3 @@ begin
     MsgBox('Other installer failed to run!' + #13#10 +
       SysErrorMessage(ResultCode), mbError, MB_OK);
 end;
-
