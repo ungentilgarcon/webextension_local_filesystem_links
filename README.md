@@ -16,6 +16,7 @@ It contains:
 -   Adds a click event to every link that is including `file://` or `smb://` in `href` tag. (smb not working yet)
 -   Shows a link icon close to the link. Icon can be disabled in preferences.
 -   Dynamic loaded content supported because link events are delegated with `$(document).on(...)`
+-   The active page is initialized when the extension starts, including when temporarily loaded for testing.
 -   File links in embedded frames, including inherited-origin `about:blank` frames used by webmail viewers, are intercepted during the capture phase before page click handlers run.
 -   Supports links with double and triple slashes (e.g. `file://` or `file:///`).
 -   On Windows, `file:///dfsburo/Donnees/path.docx` opens the network share `\\dfsburo\Donnees\path.docx`; drive-letter links such as `file:///C:/path/file.docx` continue to work.

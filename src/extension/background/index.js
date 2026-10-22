@@ -32,6 +32,7 @@ class LocalFileSystemExtension {
         browser.windows.onCreated.addListener(checkPage); // initial load of firefox
         browser.tabs.onActivated.addListener(checkPage); // switched between tabs
         browser.windows.onFocusChanged.addListener(checkPage); // switched from other window
+        checkPage();
 
         browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
             //console.log('remove', tabId, removeInfo);
@@ -220,6 +221,11 @@ class LocalFileSystemExtension {
                         this.injectedTabs[activeTab.id] = true;
                     })
                     .catch(err => {
+                        console.error(
+                            'Failed to activate Local Filesystem Links for tab',
+                            activeTab.id,
+                            err
+                        );
                         ExtensionEventHandlers.onError(err);
                     })
                     .finally(() => {
