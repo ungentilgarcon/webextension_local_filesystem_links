@@ -1,77 +1,116 @@
-# local-filesystem-links
+# Local Filesystem Links
 
-## Overview
+Local Filesystem Links lets Firefox open `file://` links using the computer's
+normal file handler or file manager. **To make it work, install both the Firefox
+add-on and the native host for your operating system.**
 
-This is the alien-local-filesystem-links extension for Mozilla Firefox.
+## Quick setup
 
-It contains:
+### 1. Install the Firefox add-on
 
--   extension source code (src/)
--   native app source code (native-host/)
--   tests (test/)
--   documentation (doc/)
+-   [Install Local Filesystem Links from Firefox Add-ons (AMO)](https://addons.mozilla.org/firefox/addon/local-filesystem-links/).
+-   Alternatively, download the [signed Firefox add-on ZIP](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/local_filesystem_links-0.101.5.zip)
+    from the [latest release](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest).
 
-## Features
+### 2. Install the native host
 
--   Adds a click event to every link that is including `file://` or `smb://` in `href` tag. (smb not working yet)
--   Shows a link icon close to the link. Icon can be disabled in preferences.
--   Dynamic loaded content supported because link events are delegated with `$(document).on(...)`
--   Content scripts are registered declaratively in each browser manifest and initialize only on pages matching the configured whitelist.
--   File links in dynamically loaded content and embedded frames are intercepted during the capture phase before page click handlers run.
--   Supports links with double and triple slashes (e.g. `file://` or `file:///`).
--   On Windows, `file:///dfsburo/Donnees/path.docx` opens the network share `\\dfsburo\Donnees\path.docx`; drive-letter links such as `file:///C:/path/file.docx` continue to work.
--   For a server-qualified network link, use `file://server/share/path`; for example, `file://villeurbanne.fr/dfsburo/Donnees/path.docx` maps to `\\villeurbanne.fr\dfsburo\Donnees\path.docx`. The host in the URL is significant.
--   An optional fallback server can be set in the extension settings for unqualified `file:///...` links. When the original path is unavailable, the host is prepended to the path; entering `villeurbanne.fr` maps `file:///dfsburo/Donnees/path.docx` to `\\villeurbanne.fr\dfsburo\Donnees\path.docx` on Windows (and `//villeurbanne.fr/dfsburo/Donnees/path.docx` on Linux). Existing local paths and server-qualified links are unchanged.
--   Percent-encoded filename characters (such as `%20` for spaces) are decoded before checking or opening the Windows path.
--   Windows opens documents through their registered file association; the reveal action selects the file in File Explorer.
--   Windows reveal requests use the ShellExecute API to open the file's containing folder; failures are reported instead of being treated as successful launches.
--   Native-host failures include the URL and Python traceback in the extension notification and background console.
--   Windows diagnostic logging is optional at installation time and disabled by default. If enabled, startup and requested local file paths are written to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.
--   (Not available: Right click context menu that opens a text selection that contains a file link + option to reveal the directory of a directly linked file.)
--   Whitelist option to enable local links only at a specific url e.g. `*.trello.com`
--   Statusbar icon for displaying if links are active for current tab & for easier access to addon settings
--   Option to change the default text link behaviour (open or reveal)
--   Localization (current languages German, English, Russian)
+The add-on needs this small companion application to open files outside the
+browser:
 
-## Screenshots
+-   **Windows:** [Download and run the native-host installer](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/native-app-setup.exe).
+    Diagnostic logging is optional in the installer and off by default.
+-   **Linux:** There is no prebuilt Linux native-host download in the current
+    release. Linux users need to build and install it from source; see
+    [Linux native-host setup](README.build-from-source.md#linux-native-host).
 
-![Addon at local test server](/doc/screenshots/addon_in_action.png)
-![Context menu](/doc/screenshots/addon_context_menu.png)
+The browser add-on ZIP is the same whichever operating system you use. Only the
+native host is operating-system specific. The current public release provides a
+Windows installer; check [all release assets](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases)
+before installing to see whether a Linux package has since been published.
+
+### Browser support
+
+The supported ready-to-install browser is **Firefox**. A Chrome manifest is
+included for development, but this release does not provide a supported Chrome
+package or register the native host for Chrome. Follow the Firefox instructions
+above; installing the Firefox package in Chrome will not make native links work.
+
+## Configure a network fallback server
+
+Use this when a link has no server name and the network share cannot be resolved
+from the current computer. For example, a page may contain:
+
+```text
+file:///dfsburo/Donnees/DGRT/DSI/ENT/Dossier%20ORIGINALB_RAEP_a%20imprimer%20-%20pour%20fusion.docx
+```
+
+On Windows, that unqualified URL is initially interpreted as a UNC path such as
+`\\dfsburo\Donnees\...`. If the reachable server is `villeurbanne.fr`, configure
+the fallback as follows:
+
+1. In Firefox, open the Local Filesystem Links toolbar button and choose
+   **Change settings...**.
+2. In **Fallback server for unqualified network links**, enter only:
+   `villeurbanne.fr`
+3. Save/close settings, then retry the link.
+
+When the original unqualified path cannot be opened, the add-on retries it using
+the fallback server. The example resolves to:
+
+```text
+Windows: \\villeurbanne.fr\dfsburo\Donnees\DGRT\DSI\ENT\Dossier ORIGINALB_RAEP_a imprimer - pour fusion.docx
+Linux:   //villeurbanne.fr/dfsburo/Donnees/DGRT/DSI/ENT/Dossier ORIGINALB_RAEP_a imprimer - pour fusion.docx
+```
+
+Enter a hostname only: **do not** include `file://`, `https://`, slashes, a
+share name, or a folder path. The fallback is only for unqualified network
+links; explicit server links such as `file://villeurbanne.fr/dfsburo/Donnees/file.docx`
+and local drive paths such as `file:///C:/Documents/file.docx` are left unchanged.
+The computer must still have network access and permission to reach the share.
+
+## Using the add-on
+
+The add-on detects `file://` links on pages where it is enabled. Clicking a link
+opens the file with the operating system's associated application. The toolbar
+settings let you choose whether the default link action opens a file or reveals
+it in its containing folder, and let you restrict link handling with a page
+whitelist. A whitelist value of `*` enables all pages; an empty value disables
+all pages.
+
+Supported path details include:
+
+-   Windows drive-letter links, for example `file:///C:/Documents/file.docx`.
+-   Windows network links, for example `file://server/share/folder/file.docx`.
+-   Percent-encoded filename characters such as `%20` for spaces.
+-   An optional fallback server for unqualified network links, as described above.
+
+## Troubleshooting
+
+-   Confirm that both the Firefox add-on and native host are installed. Restart
+    Firefox after installing the native host.
+-   Confirm the target file/share is reachable from the computer running Firefox.
+    A fallback hostname cannot grant access to a server or share the user cannot
+    already reach.
+-   Confirm the page is allowed by the add-on's whitelist.
+-   On Windows, diagnostic logging can be selected during installation. When
+    enabled, the native host writes to
+    `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`; logging is off by
+    default.
+
+## Project and development
+
+The repository contains the Firefox extension source in `src/`, native-host
+source in `native-host/`, tests in `test/`, and additional documentation in
+`doc/`. See [README.dev.md](README.dev.md) for development and
+[README.build-from-source.md](README.build-from-source.md) for production and
+Linux native-host build details.
 
 ## License
 
 -   GPLv3 or later
--   www.mozilla.org/MPL/ v2 or later
-
-## Start developing
-
-See README.dev.md
+-   Mozilla Public License v2 or later
 
 ## Donations
 
-If you like the extension and you want to support the development - please consider to donate. Any donations are greatly appreciated.
-
--   AWolf81 - current main developer:
-
-    -   [Paypal.me to AWolf81](https://www.paypal.me/awlf81) (coding contributions)
-    -   What are we doing with the donations?
-        -   Buy a code signing certificate (needed for Windows) cost around 100 USD
-        -   Incentive / motivation - this helps to stay motivated.
-
--   Feinstaub - original author and addon management:
-    -   No direct donations possible yet (waiting for something private and decentrally organized like [GNU Taler](https://taler.net/en))
-        -   [Some people do not use Paypal](https://github.com/feinstaub/webextension_local_filesystem_links/issues/98#issuecomment-357984115), maybe because of https://de.wikipedia.org/wiki/PayPal#Kritik
-    -   Any donation that supports a Free Software community helps to maintain a technical and social environment where the development of software like this addon are possible. If you have no idea which community you would like to support, I recommend these organisations:
-        -   **KDE**: https://www.kde.org/community/donations/others.php
-            -   Vision: ["A world in which everyone has control over their digital life and enjoys freedom and privacy."](https://dot.kde.org/2016/04/05/kde-presents-its-vision-future)
-            -   [supports Bitpay](https://bitpay.com/990273/donate)
-        -   **Free Software Foundation**: https://www.fsf.org/about/ways-to-donate
-        -   **Software Freedom Conservancy**: https://sfconservancy.org/donate
-            -   ["helps promote, improve, develop, and defend Free, Libre, and Open Source Software (FLOSS) projects"](https://sfconservancy.org/about/)
-        -   **Mozilla**: https://donate.mozilla.org/de/
-    -   For Germany, there are related organisations which help Free Software indirectly by supporting the underlying values:
-        -   **DigitalCourage**: https://digitalcourage.de/ueber-uns
-            -   "Digitalcourage arbeitet für eine lebenswerte Welt im digitalen Zeitalter."
-            -   "setzt sich seit 1987 für Grundrechte und Datenschutz ein"
-        -   **Forum InformatikerInnen für Frieden und gesellschaftliche Verantwortung e.V.**: https://www.fiff.de
-            -   "FIfF wurde 1984 [...] aus einer historischen Situation heraus gegründet, als es galt, das Schweigen einer Zunft zu brechen, die so maßgeblich an der Entwicklung automatisierter und informatisierter Kriegsführung beteiligt war."
+ungentilgarcon is the current maintainer and main contributor. To support
+ongoing development and maintenance, [contribute via PayPal](https://paypal.me/ungentilgarcon).

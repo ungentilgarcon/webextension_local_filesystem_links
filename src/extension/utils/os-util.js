@@ -1,6 +1,6 @@
 /*
  * License: www.mozilla.org/MPL/
- * Created by https://github.com/feinstaub/firefox_addon_local_filesystem_links
+ * Maintained by https://github.com/ungentilgarcon
  */
 'use strict';
 

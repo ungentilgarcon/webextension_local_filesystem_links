@@ -1,5 +1,6 @@
 {
     "name": "Local Filesystem Links",
+    "author": "ungentilgarcon",
     "options_ui": {
         "page": "options.html"
     },

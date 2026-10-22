@@ -4,7 +4,7 @@
     "version": "0.101.5",
     "description": "Scans pages for file:/// links and makes it possible to open them with the system's file browser.",
     "main": "index.js",
-    "author": "austrALIENsun",
+    "author": "ungentilgarcon",
     "scripts": {
         "start": "npm run dev",
         "start:web-ext": "wait-on dist/ && web-ext run -s dist/",

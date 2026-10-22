@@ -1,92 +1,164 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Successfully installed - Local Filesystem Links</title>
-    <link rel="stylesheet" href="installed.css">
-  </head>
-  <body>
-    <header>
-      <div class="content-wrap">
-        <h1>Thank you for installing</h1>
-        <img src="img/addon_icon_48.png" width="48" height="48"/>
-        <h1 class="app-name">Local Filesystem Links Extension</h1>
-      </div>
-    </header>
-    <main class="content-wrap">
-      <h2><span class="important">Important!</span> Next steps required for the extension to work</h2>
-      <ol>
-        <li>Download and install the native application for your system.<br/>
-          <div class="download-os-container">
-            <a href="https://github.com/AWolf81/webextension_local_filesystem_links-native-host-binaries/raw/master/win32/native-app-setup.exe" target="_blank">
-              <span class="download-os">
-                Windows
-              </span>
-            </a>
-            <a href="https://github.com/AWolf81/webextension_local_filesystem_links-native-host-binaries/raw/master/linux/native-app-bundle-linux.tar" target="_blank">
-              <span class="download-os">
-                  Linux
-              </span>
-            </a>
-            <a href="https://github.com/AWolf81/webextension_local_filesystem_links-native-host-binaries/raw/master/mac/native-app-bundle-mac.tar" target="_blank">
-              <span class="download-os">
-                  Mac
-              </span>
-            </a>
-          </div>
-        </li>
-        <li class="clearfix">
-          Check and modify whitelist settings by clicking at the addon icon in addon bar and select "Change settings...".
-          By default all pages are allowed but it's recommended to limit the pages where the addon can add the local link behaviour.
-        </li>
-        <li>
-          Test the addon at your pages or at this <a href="http://jsfiddle.net/awolf2904/tefcs74q/" target="_blank">Jsfiddle</a>.
-        </li>
-      </ol>
-      <hr/>
-      <h3>Donations</h3>
-      <p>If you like the extension and you want to support the development - please consider to donate. Any donations are greatly appreciated.</p>
-      <a href="https://github.com/feinstaub/webextension_local_filesystem_links#donations">Ways to donate</a>
-      <hr/>
-      <h3>Additional information</h3>
-      <h4>Why do I get a warning that my computer was protected by Windows? <a href="#" data-target="warningInfo" class="toggle">Show answer</a></h4>
-      <div id="warningInfo" class="info-container">
-        <p>
-          This warning shouldn't happend anymore because the installer is signed now. If you're getting this warning please report it so we can check the certificate.<br/> 
-          You can install the app if you're clicking on show more information and afterwards click on the new button "run anyway".<br/>
-          Below you see that message in Windows 10:
-          <img src="img/code_signing_warning.png" width="100%"/>
-        </p>
-        <p>
-          If you're concerned about security then you can do the following to be sure that everything is as usual:
-          <ul>
-            <li>Check that the installer is downloaded from github repo by hovering over the download links above for your OS. Repo link <a href="https://github.com/AWolf81/webextension_local_filesystem_links-native-host-binaries">AWolf81/webextension_local_filesystem_links-native-host-binaries</a></li>
-            <li>Run your virus scanner on the downloaded file before executing</li>
-          </ul>
-        </p>
-      </div>
-      <h4>Why do I need to install a program? <a href="#" data-target="info" class="toggle">Show answer</a></h4>
-      <div id="info" class="info-container">
-        <p>
-          In previous versions of Firefox (before FF 57) it was possible to access the
-          local filesystem with the browser API. That's not supported anymore and it
-          is similar to other browsers (e.g. Chrome has also this restriction).
-        </p>
-        <p>
-          To make this extension possible we need a way to interact with the file system again.
-          This is possible with a native application that communicates with the browser with an API. It's called native messaging.
-          The application will use the system file explorer (e.g. on Windows - it's Windows Explorer)
-          to open the application in your linked application.
-        </p>
-      </div>
-      <h4>Whitelist needs to be according to new schema e.g. *://*.jsfiddle.net/*</h4>
-      <p>The new format is &lt;scheme&gt;://&lt;host&gt;&lt;path&gt; (wildcard char * is possible)<br/>
-      A single * will be replaced with &lt;all_urls&gt; by the extension.
-      Please have a look at the following docs. for more details about <a href="https://developer.mozilla.org/de/Add-ons/WebExtensions/Match_patterns">match patterns</a>
-      </p>
-      <h4>How can I whitelist a server with a port e.g. servername:8080?</h4>
-      <p>Just add it with-out the port and it will be correctly handled. e.g. http://servername/*</p>
-    </main>
-    <script src="installed.js"></script>
-  </body>
+    <head>
+        <meta charset="utf-8" />
+        <title>Successfully installed - Local Filesystem Links</title>
+        <link rel="stylesheet" href="installed.css" />
+    </head>
+    <body>
+        <header>
+            <div class="content-wrap">
+                <h1>Thank you for installing</h1>
+                <img src="img/addon_icon_48.png" width="48" height="48" />
+                <h1 class="app-name">Local Filesystem Links Extension</h1>
+            </div>
+        </header>
+        <main class="content-wrap">
+            <h2>
+                <span class="important">Important!</span> Install the native
+                host for links to open
+            </h2>
+            <p>
+                The Firefox add-on needs a small companion application on this
+                computer. Download the matching native host below, install it,
+                then restart Firefox.
+            </p>
+            <ol>
+                <li>
+                    Download the native host for your system.<br />
+                    <div class="download-os-container">
+                        <a
+                            href="https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/native-app-setup.exe"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <span class="download-os">
+                                Windows
+                            </span>
+                        </a>
+                        <a
+                            href="https://github.com/ungentilgarcon/webextension_local_filesystem_links/blob/master/README.build-from-source.md#linux-native-host"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <span class="download-os">
+                                Linux (build from source)
+                            </span>
+                        </a>
+                    </div>
+                </li>
+                <li class="clearfix">
+                    Check and modify whitelist settings by clicking at the addon
+                    icon in addon bar and select "Change settings...". By
+                    default all pages are allowed but it's recommended to limit
+                    the pages where the addon can add the local link behaviour.
+                </li>
+                <li>
+                    Test the addon with a local file link on a page where the
+                    extension is enabled.
+                </li>
+            </ol>
+            <p>
+                <strong>Linux note:</strong> A prebuilt Linux native host is not
+                included in the current release. Follow the source-build
+                instructions linked above.
+            </p>
+            <hr />
+            <h3>Donations</h3>
+            <p>
+                ungentilgarcon is the current maintainer and main contributor.
+                Support ongoing development and maintenance with a
+                <a
+                    href="https://paypal.me/ungentilgarcon"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >PayPal contribution</a
+                >.
+            </p>
+            <hr />
+            <h3>Additional information</h3>
+            <h4>
+                Why do I get a warning that my computer was protected by
+                Windows?
+                <a href="#" data-target="warningInfo" class="toggle"
+                    >Show answer</a
+                >
+            </h4>
+            <div id="warningInfo" class="info-container">
+                <p>
+                    This warning shouldn't happend anymore because the installer
+                    is signed now. If you're getting this warning please report
+                    it so we can check the certificate.<br />
+                    You can install the app if you're clicking on show more
+                    information and afterwards click on the new button "run
+                    anyway".<br />
+                    Below you see that message in Windows 10:
+                    <img src="img/code_signing_warning.png" width="100%" />
+                </p>
+                <div>
+                    <p>
+                        If you're concerned about security then you can do the
+                        following to be sure that everything is as usual:
+                    </p>
+                    <ul>
+                        <li>
+                            Check that the installer is downloaded from the
+                            <a
+                                href="https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases"
+                                >official GitHub releases</a
+                            >.
+                        </li>
+                        <li>
+                            Run your virus scanner on the downloaded file before
+                            executing
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <h4>
+                Why do I need to install a program?
+                <a href="#" data-target="info" class="toggle">Show answer</a>
+            </h4>
+            <div id="info" class="info-container">
+                <p>
+                    In previous versions of Firefox (before FF 57) it was
+                    possible to access the local filesystem with the browser
+                    API. That's not supported anymore and it is similar to other
+                    browsers (e.g. Chrome has also this restriction).
+                </p>
+                <p>
+                    To make this extension possible we need a way to interact
+                    with the file system again. This is possible with a native
+                    application that communicates with the browser with an API.
+                    It's called native messaging. The application will use the
+                    system file explorer (e.g. on Windows - it's Windows
+                    Explorer) to open the application in your linked
+                    application.
+                </p>
+            </div>
+            <h4>
+                Whitelist needs to be according to new schema e.g.
+                *://*.jsfiddle.net/*
+            </h4>
+            <p>
+                The new format is &lt;scheme&gt;://&lt;host&gt;&lt;path&gt;
+                (wildcard char * is possible)<br />
+                A single * will be replaced with &lt;all_urls&gt; by the
+                extension. Please have a look at the following docs. for more
+                details about
+                <a
+                    href="https://developer.mozilla.org/de/Add-ons/WebExtensions/Match_patterns"
+                    >match patterns</a
+                >
+            </p>
+            <h4>
+                How can I whitelist a server with a port e.g. servername:8080?
+            </h4>
+            <p>
+                Just add it with-out the port and it will be correctly handled.
+                e.g. http://servername/*
+            </p>
+        </main>
+        <script src="installed.js"></script>
+    </body>
 </html>

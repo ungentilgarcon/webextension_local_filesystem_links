@@ -1,44 +1,82 @@
-# Build from source: webextension_local_filesystem_links
+# Build from source
 
-1. Extract source code archive
+These instructions are for contributors and users who need to build the browser
+add-on or native host themselves. The supported ready-to-install browser is
+Firefox. Although a Chrome manifest is included in the source, the native-host
+registration currently targets Firefox only; Chrome is not a supported setup.
 
-2. Install dependencies:
+## Build the Firefox add-on
 
-    \$ npm install
-    ...
-    added 1208 packages in 25.165s
+Install Node.js/npm, then run these commands from the repository root:
 
-3. Generate the production version of the Firefox extension in the `dist` folder:
+```sh
+npm install
+npm run build
+npm run bundle
+```
 
-    \$ npm run build
-    ...
-    DONE Compiled successfully in 4841ms
+The production extension is written to `dist/`; the installable ZIP is written
+to `web-ext-artifacts/`. The Firefox ZIP can be installed in Firefox or
+submitted to [Firefox Add-ons](https://addons.mozilla.org/en-US/developers/addon/local-filesystem-links/versions).
 
-4. Generate the Firefox add-on ZIP in the `web-ext-artifacts` folder:
+For development only, the Chrome manifest can be selected by setting
+`BROWSER=chrome` when running the webpack build. This does not add Chrome native
+messaging support, so local file links will not work end-to-end in Chrome.
 
-    \$ npm run bundle
-    ...
-    Your web extension is ready: /home/gregor/dev/src/firefox_addon/sourcecode-archive/web-ext-artifacts/local_filesystem_links-0.99.60.zip
+## Build the Windows native host
 
-5. On Windows, build the native messaging host and its installer separately. Install the Python 2 dependencies from `native-host/requirements.txt`, ensure PyInstaller and Inno Setup 6 are available, then from `native-host/` run:
+Install the Python dependencies from `native-host/requirements.txt`, and make
+sure PyInstaller and Inno Setup 6 are available. From `native-host/`, build the
+host and compile the installer:
 
-    $ sh build/build.sh
-    $ ISCC.exe build/windows/InnoSetupScript.iss
+```sh
+sh build/build.sh
+ISCC.exe build/windows/InnoSetupScript.iss
+```
 
-    The installer is written to `native-host/bin/win32/native-app-setup.exe`.
-    The installer writes an absolute executable path into the registered Firefox native-host manifest. Runtime diagnostics are written to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.
+The installer is written to `native-host/bin/win32/native-app-setup.exe`. It
+registers the absolute host executable path for Firefox. Optional diagnostic
+logging is disabled by default and can be enabled in the installer.
 
-6. Manually upload the Firefox ZIP here: https://addons.mozilla.org/en-US/developers/addon/local-filesystem-links/versions
-    - Upload Version -> Select a file...
-    - Troubleshooting:
-        - red message: "Version 0.99.58 was uploaded before and deleted". No hint what to do next.
-        - solution: upload new version 0.99.59 (npm run build, npm run bundle, upload the file)
-    - Follow the instructions and provide source code
-        - \$ ./make-sourcecode-archive.sh
+## Linux native host
 
-## Older stuff
+The current GitHub release does not include a prebuilt Linux native host. The
+Linux build uses the legacy PyInstaller 3.3.1 toolchain and Python 2.7 pinned in
+`native-host/requirements.txt`; building may require an older compatible Linux
+environment. The native host currently registers with Firefox, not Chrome.
 
--   One-time: Install [web-ext](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext) with `npm install web-ext`.
--   Find API key hiere: See Tools > Manage API Keys (https://addons.mozilla.org/en-US/developers/addon/api/key/)
+On a Linux build machine, install Node.js/npm, Python 2.7, and a Python 2
+compatible version of pip. Install the Linux build dependency (the
+Windows-only `pypiwin32` dependency in the shared requirements file is not
+needed), then build from the repository's `native-host/` directory:
 
-    \$ ./node_modules/web-ext/bin/web-ext sign --api-key=userkey --api-secret=... -s dist
+```sh
+python2 -m pip install "PyInstaller==3.3.1"
+npm install
+npm run build:unix
+```
+
+This creates `native-host/bin/linux/native-app-bundle-linux.tar`. From
+`native-host/`, extract the archive into a directory that will remain in place
+and register the native host for the current Firefox user:
+
+```sh
+mkdir -p "$HOME/local-filesystem-links-host"
+tar -xf bin/linux/native-app-bundle-linux.tar -C "$HOME/local-filesystem-links-host"
+cd "$HOME/local-filesystem-links-host"
+chmod +x install_host_compiled.sh
+./install_host_compiled.sh
+```
+
+Keep the extracted host files in place after installation: the registered
+manifest points to the executable inside that directory. Restart Firefox after
+installing. The installer writes the native-host manifest under the current
+user's Mozilla configuration.
+
+## Publish a Firefox add-on
+
+Before submitting a new version, update the version in `package.json`, build
+and bundle the extension, then upload the ZIP from `web-ext-artifacts/` to
+[Firefox Add-ons](https://addons.mozilla.org/en-US/developers/addon/local-filesystem-links/versions).
+Follow Mozilla's submission steps and provide the source archive generated by
+`./make-sourcecode-archive.sh` when requested.

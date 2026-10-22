@@ -6,6 +6,7 @@ Feel free to use a pseudonym if you like.
 author              contribution    role / contributions
                     year
 ----------------------------------------------------------------------------
-austrALIENsun       2011            project initiator and current maintainer
+austrALIENsun       2011            project initiator
 sweoggy             2015            initial implementation of dynamic link scanning
 AWolf81             2016            code refactoring / cleaning / changed dynamic link scanning to jquery-observe
+ungentilgarcon      2026            current maintainer and main contributor

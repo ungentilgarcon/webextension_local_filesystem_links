@@ -28,6 +28,6 @@ We hold the rights to update this privacy policy periodically. Despite the non-i
 
 ## Contact Us
 
-For any queries or clarifications regarding this privacy policy, please reach us at [Github/webextension_local_filesystem_links](https://github.com/feinstaub/webextension_local_filesystem_links).
+For any queries or clarifications regarding this privacy policy, please reach us at [ungentilgarcon/webextension_local_filesystem_links](https://github.com/ungentilgarcon/webextension_local_filesystem_links).
 
 By utilizing the Local Filesystem Link extension, you consent to the practices delineated in this privacy policy.
