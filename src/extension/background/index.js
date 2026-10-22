@@ -18,7 +18,7 @@ class LocalFileSystemExtension {
     addListeners() {
         // add message handling
         browser.runtime.onMessage.addListener(
-            this.eventHandlers.onMessage.bind(this)
+            this.eventHandlers.onMessage.bind(this.eventHandlers)
         );
 
         const checkPage = () => {
