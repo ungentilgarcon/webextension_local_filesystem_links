@@ -65,6 +65,20 @@
             }
         }
     },
+    "ERROR_OPEN_FAILED": {
+        "message": "Windows konnte $URL$ nicht öffnen: $DETAIL$",
+        "description": "Fehlermeldung wenn Windows eine Datei nicht öffnen kann",
+        "placeholders": {
+            "url": {
+                "content": "$1",
+                "example": "file://server/share/document.docx"
+            },
+            "detail": {
+                "content": "$2",
+                "example": "Die angegebene Datei wurde nicht gefunden."
+            }
+        }
+    },
     "INFO_CONFIG_CHANGED_SMB": {
         "message": "Konfiguration geändert! SMB links sind jetzt aktiviert.",
         "description": "Info message SMB configured (not used yet)"

@@ -55,10 +55,20 @@ export class ExtensionEventHandlers {
                         handler.retriesOnFailure >=
                         handler.settings.retriesOnFailure
                     ) {
-                        const msg = browser.i18n.getMessage(
-                            response.error,
-                            window.decodeURI(response.url)
-                        );
+                        const url = response.url
+                            ? window.decodeURI(response.url)
+                            : '';
+                        const substitutions =
+                            response.error === 'ERROR_OPEN_FAILED'
+                                ? [url, response.detail || '']
+                                : url;
+                        const msg =
+                            browser.i18n.getMessage(
+                                response.error,
+                                substitutions
+                            ) ||
+                            response.detail ||
+                            response.error;
 
                         notify('Error', msg); // only NotFound error at the moment
                     } else {

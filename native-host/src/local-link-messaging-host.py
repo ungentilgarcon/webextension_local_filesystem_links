@@ -14,7 +14,6 @@ import subprocess
 from subprocess import PIPE
 import os
 import re
-from pathlib2 import Path
 
 currentOS = sys.platform
 
@@ -149,40 +148,35 @@ def preparePath(pathStr):
 # Helper for check if path or file exists
 def checkPath(pathStr):
   pathStr = preparePath(pathStr)
-  path_to_open = Path(pathStr)
   # send_message(u'{"debug before match": "%s"}' % urllib.quote(pathStr))
   # send_message(u'{"debug match": "%s"}' % pathStr.startswith('//'))
-  if currentOS == 'win32' and os.path.exists(pathStr) is False:
-    # and url.startswith('//') would be good to test but it wasn't working --> re-check later
-    # windows and two slashes --> UNC link detected (special check required because os.path.exists fails on //servername/)
-    p = Popen(["net", "view", pathStr], shell=True,
-      stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    out, err = p.communicate()
-
-    validUNC = False if err else True
-  else:
-    validUNC = False
-
-  return os.path.exists(pathStr) or validUNC
+  return os.path.exists(pathStr)
 
 def getFilePath(program, exeAllowed):
   filePath = preparePath(program)
 
   if is_exe(filePath) is True and exeAllowed is False:
-    send_message('{"error": "ERROR_EXECTUBALES_NOT_ENABLED"}')
     return None
   else:
     return filePath
 
-def createResponse():
-  send_message('{"error": %s}' % "null")
+def send_json(message):
+  send_message(json.dumps(message).encode('utf-8'))
 
-def openFile(command):
-    # command = u"explorer c:\\tmp\\áéíóú.txt"
-    # send_message(r'{"debug openfile": "%s"}' % urllib.quote(command.encode('utf-8')))
-    p = Popen(command, shell=True,
-    stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    out, err = p.communicate()
+def openFile(pathStr, reveal=False):
+    if currentOS == "win32":
+      if reveal:
+        Popen(["explorer.exe", "/select,", pathStr])
+      else:
+        os.startfile(pathStr)
+      return
+
+    if reveal:
+      command = fileExplorer['reveal']['cmd'] + ' ' + fileExplorer['reveal']['arg'] + "\"%s\"" % pathStr
+    else:
+      command = fileExplorer['open'] + " \"%s\"" % pathStr
+    p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    p.communicate()
 
 # Thread that reads messages from the webapp.
 def read_thread_func(queue):
@@ -209,23 +203,43 @@ def read_thread_func(queue):
     # send_message(u"{\"debug\": \"%s\"}" % urllib.quote(fileStr.encode('utf-8')))
     if (checkPath(fileStr)):
       result = getFilePath(fileStr, exeAllowed)
-      if (reveal):
-        openFile(fileExplorer['reveal']['cmd'] + ' ' + fileExplorer['reveal']['arg'] + "\"%s\"" % result)
+      if result is None:
+        send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED"})
       else:
-        if result is not None:
-          openFile(u"%s \"%s\"" % (fileExplorer['open'], result))
-        else:
-          send_message('{"error": %s }' % "EXE_ACCESS_DENIED")  # todo pass error from getFilePath
+        try:
+          if (reveal):
+            openFile(result, True)
+          else:
+            openFile(result)
+          send_json({"error": None})
+        except Exception as err:
+          send_json({
+            "error": "ERROR_OPEN_FAILED",
+            "url": fileStr,
+            "detail": str(err)
+          })
     else:
       # send_message(u"{\"debug not found\": \"%s\"}" % urllib.quote(fileStr.encode('utf-8')))
       if (reveal):
         result = getFilePath(fileStr, exeAllowed)
-        revealPath = os.path.dirname(result)
-        openFile(fileExplorer['open'] + " \"%s\"" % revealPath)
+        if result is None:
+          send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED"})
+        else:
+          try:
+            openFile(os.path.dirname(result))
+            send_json({"error": None})
+          except Exception as err:
+            send_json({
+              "error": "ERROR_OPEN_FAILED",
+              "url": fileStr,
+              "detail": str(err)
+            })
       else:
-        send_message('{"error": "%s", "url": "%s"}' % ("ERROR_BAD_LINK", fileStr))
+        send_json({
+          "error": "ERROR_BAD_LINK",
+          "url": fileStr
+        })
 
-    createResponse() # default response
     sys.exit(0)
 
 def Main():
