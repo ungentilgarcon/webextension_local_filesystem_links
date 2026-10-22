@@ -1,0 +1,175 @@
+name: Build and draft release
+
+on:
+    push:
+        tags:
+            - 'v*'
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+        outputs:
+            addon_version: ${{ steps.versions.outputs.addon_version }}
+            host_version: ${{ steps.versions.outputs.host_version }}
+        steps:
+            - uses: actions/checkout@v4
+            - id: versions
+              name: Validate tag and component versions
+              shell: bash
+              run: |
+                  addon_version="$(node -p "require('./package.json').version")"
+                  host_version="$(node -p "require('./native-host/package.json').version")"
+                  expected_tag="v${host_version}"
+                  if [[ "$GITHUB_REF_NAME" != "$expected_tag" ]]; then
+                    echo "::error::Tag $GITHUB_REF_NAME must match native-host/package.json version ($expected_tag)."
+                    exit 1
+                  fi
+                  echo "addon_version=$addon_version" >> "$GITHUB_OUTPUT"
+                  echo "host_version=$host_version" >> "$GITHUB_OUTPUT"
+
+    firefox:
+        needs: validate
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run build
+            - run: npx web-ext lint --source-dir ./dist
+            - name: Sign Firefox add-on with AMO
+              env:
+                  AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+                  AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+              run: |
+                  if [[ -z "$AMO_JWT_ISSUER" || -z "$AMO_JWT_SECRET" ]]; then
+                    echo "::error::Set AMO_JWT_ISSUER and AMO_JWT_SECRET in repository Actions secrets."
+                    exit 1
+                  fi
+                  npx web-ext sign \
+                    --source-dir ./dist \
+                    --artifacts-dir ./web-ext-artifacts \
+                    --api-key "$AMO_JWT_ISSUER" \
+                    --api-secret "$AMO_JWT_SECRET" \
+                    --channel listed
+            - name: Prepare Firefox release assets
+              env:
+                  ADDON_VERSION: ${{ needs.validate.outputs.addon_version }}
+              run: |
+                  signed_addon="$(find web-ext-artifacts -maxdepth 1 -type f -name '*.xpi' -print -quit)"
+                  if [[ -z "$signed_addon" ]]; then
+                    echo "::error::AMO signing completed without producing an .xpi file."
+                    exit 1
+                  fi
+                  mkdir -p release-assets
+                  cp "$signed_addon" "release-assets/local_filesystem_links-${ADDON_VERSION}.xpi"
+                  cp "$signed_addon" release-assets/firefox-addon.xpi
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: firefox-release-assets
+                  path: release-assets/*
+                  if-no-files-found: error
+                  retention-days: 1
+
+    windows:
+        needs: validate
+        runs-on: windows-2022
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: '2.7.18'
+                  architecture: x86
+            - name: Install legacy native-host dependencies
+              shell: bash
+              run: |
+                  python -m pip install --upgrade "pip<21"
+                  python -m pip install -r native-host/requirements.txt
+            - name: Build Windows native host
+              shell: bash
+              run: |
+                  cd native-host
+                  bash build/build.sh
+            - name: Install Inno Setup
+              shell: pwsh
+              run: choco install innosetup --yes --no-progress
+            - name: Build Windows installer
+              shell: pwsh
+              env:
+                  HOST_VERSION: ${{ needs.validate.outputs.host_version }}
+              run: |
+                  $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+                  if (-not (Test-Path $iscc)) {
+                    throw "Inno Setup compiler not found at $iscc"
+                  }
+                  & $iscc "native-host\build\windows\InnoSetupScript.iss"
+                  if ($LASTEXITCODE -ne 0) {
+                    throw "Inno Setup failed with exit code $LASTEXITCODE"
+                  }
+                  $source = "native-host\bin\win32\native-app-setup.exe"
+                  if (-not (Test-Path $source)) {
+                    throw "Installer was not created at $source"
+                  }
+                  New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+                  Copy-Item $source "release-assets\native-app-setup.exe"
+                  Copy-Item $source "release-assets\native-app-setup-$env:HOST_VERSION.exe"
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: windows-release-assets
+                  path: release-assets/*
+                  if-no-files-found: error
+                  retention-days: 1
+
+    draft-release:
+        needs: [validate, firefox, windows]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/download-artifact@v4
+              with:
+                  name: firefox-release-assets
+                  path: release-assets
+            - uses: actions/download-artifact@v4
+              with:
+                  name: windows-release-assets
+                  path: release-assets
+            - name: Write release notes
+              env:
+                  ADDON_VERSION: ${{ needs.validate.outputs.addon_version }}
+                  HOST_VERSION: ${{ needs.validate.outputs.host_version }}
+              run: |
+                  cat > release-notes.md <<EOF
+                  ## Components
+
+                  - Firefox add-on: \`$ADDON_VERSION\` (signed by Firefox Add-ons)
+                  - Windows native host: \`$HOST_VERSION\`
+
+                  Install both the Firefox add-on and the native host, then restart Firefox.
+                  Windows users can optionally enable diagnostic logging during installation.
+                  Linux has no prebuilt host in this release; Chrome is not supported.
+
+                  ## Assets
+
+                  - \`firefox-addon.xpi\` is the current signed Firefox add-on.
+                  - \`native-app-setup.exe\` is the current Windows installer.
+                  - Versioned copies are provided for both components.
+                  EOF
+            - uses: softprops/action-gh-release@v2
+              with:
+                  name: Local Filesystem Links ${{ github.ref_name }}
+                  draft: true
+                  prerelease: false
+                  body_path: release-notes.md
+                  files: release-assets/*
+                  fail_on_unmatched_files: true

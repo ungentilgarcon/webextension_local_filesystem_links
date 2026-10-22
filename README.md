@@ -9,8 +9,8 @@ add-on and the native host for your operating system.**
 ### 1. Install the Firefox add-on
 
 -   [Install Local Filesystem Links from Firefox Add-ons (AMO)](https://addons.mozilla.org/firefox/addon/local-filesystem-links/).
--   Alternatively, download the [signed Firefox add-on ZIP](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/local_filesystem_links-0.101.5.zip)
-    from the [latest release](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest).
+-   Alternatively, download the [signed Firefox add-on](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/firefox-addon.xpi)
+    or browse all assets in the [latest GitHub release](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest).
 
 ### 2. Install the native host
 
