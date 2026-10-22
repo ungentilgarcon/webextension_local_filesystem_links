@@ -16,8 +16,8 @@ It contains:
 -   Adds a click event to every link that is including `file://` or `smb://` in `href` tag. (smb not working yet)
 -   Shows a link icon close to the link. Icon can be disabled in preferences.
 -   Dynamic loaded content supported because link events are delegated with `$(document).on(...)`
--   Supports links with double and tripple slashes (e.g. file:// or file:///)
--   On Windows, supports network-share links such as `file:///dfsburo/Donnees/path.docx`
+-   Supports links with double and triple slashes (e.g. `file://` or `file:///`).
+-   On Windows, `file:///dfsburo/Donnees/path.docx` opens the network share `\\dfsburo\Donnees\path.docx`; drive-letter links such as `file:///C:/path/file.docx` continue to work.
 -   (Not available: Right click context menu that opens a text selection that contains a file link + option to reveal the directory of a directly linked file.)
 -   Whitelist option to enable local links only at a specific url e.g. `*.trello.com`
 -   Statusbar icon for displaying if links are active for current tab & for easier access to addon settings
