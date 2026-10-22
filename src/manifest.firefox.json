@@ -6,7 +6,10 @@
     },
     "browser_specific_settings": {
         "gecko": {
-            "id": "jid1-JAzC7z53jemo5Q@jetpack"
+            "id": "jid1-JAzC7z53jemo5Q@jetpack",
+            "data_collection_permissions": {
+                "required": ["none"]
+            }
         }
     },
     "icons": {
