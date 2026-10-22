@@ -97,6 +97,80 @@ export class ExtensionEventHandlers {
      */
     onMessage(request, sender, sendResponse) {
         switch (request.action) {
+            case 'initializeContent':
+                if (!sender.tab) {
+                    sendResponse(null);
+                    break;
+                }
+                if (sender.tab.url && sender.tab.url.indexOf('.xml') !== -1) {
+                    sendResponse(null);
+                    break;
+                }
+
+                browser.storage.local
+                    .get()
+                    .then(settings =>
+                        this.onSettingsLoaded(
+                            settings,
+                            (loadedSettings, whitelist) => {
+                                browser.tabs
+                                    .query({ url: whitelist })
+                                    .then(tabs => {
+                                        if (
+                                            !tabs.some(
+                                                tab => tab.id === sender.tab.id
+                                            )
+                                        ) {
+                                            sendResponse(null);
+                                            return;
+                                        }
+
+                                        return Promise.all(
+                                            [
+                                                'css/self-hosted-materialize.css',
+                                                'css/style.css'
+                                            ].map(file =>
+                                                browser.tabs.insertCSS(
+                                                    sender.tab.id,
+                                                    {
+                                                        file,
+                                                        frameId: sender.frameId,
+                                                        matchAboutBlank: true
+                                                    }
+                                                )
+                                            )
+                                        ).then(() => {
+                                            sendResponse({
+                                                options: {
+                                                    enableLinkIcons:
+                                                        loadedSettings.enableLinkIcons,
+                                                    revealOpenOption:
+                                                        loadedSettings.revealOpenOption
+                                                },
+                                                constants: JSON.parse(
+                                                    JSON.stringify(CONSTANTS)
+                                                )
+                                            });
+                                        });
+                                    })
+                                    .catch(err => {
+                                        console.error(
+                                            'Failed to initialize Local Filesystem Links content script',
+                                            err
+                                        );
+                                        sendResponse({ error: err.message });
+                                    });
+                            }
+                        )
+                    )
+                    .catch(err => {
+                        console.error(
+                            'Failed to load Local Filesystem Links settings',
+                            err
+                        );
+                        sendResponse({ error: err.message });
+                    });
+                return true;
             case 'showInstallInfoTab':
                 showInstallationTab();
                 break;

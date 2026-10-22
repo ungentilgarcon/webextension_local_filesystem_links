@@ -55,6 +55,17 @@
         registerEvents(); // important to have this called once per tab to avoid mulitple events on file link (tracked in background script with injectedTabs)
     }
 
+    function initialize(data) {
+        appTextMessages = data.constants.MESSAGES.USERMESSAGES;
+        options = data.options;
+
+        if (!$icon) {
+            $icon = $container.append($('<i/>').addClass('material-icons'));
+        }
+
+        activate();
+    }
+
     // Get settings from addon
 
     browser.runtime.onMessage.addListener(function(
@@ -82,23 +93,29 @@
                 unregisterEvents();
                 break;
             case 'init':
-                appTextMessages = request.data.constants.MESSAGES.USERMESSAGES;
-                options = request.data.options; // load options
-
-                if (!$icon) {
-                    $icon = $container.append(
-                        $('<i/>').addClass('material-icons')
-                    );
-                }
-
-                // now everything is ready to load
-                activate();
-
+                initialize(request.data);
                 sendResponse({ feedback: 'initDone' });
                 break;
             default:
         }
     });
+
+    browser.runtime
+        .sendMessage({ action: 'initializeContent' })
+        .then(data => {
+            if (data && data.error) {
+                throw new Error(data.error);
+            }
+            if (data) {
+                initialize(data);
+            }
+        })
+        .catch(err => {
+            console.error(
+                'Failed to initialize Local Filesystem Links content script',
+                err
+            );
+        });
 
     // Update settings on change of pref.
     function updateIcons(data) {
