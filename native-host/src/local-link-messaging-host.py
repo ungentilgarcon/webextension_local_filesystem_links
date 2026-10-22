@@ -211,15 +211,15 @@ def send_json(message):
 def openFile(pathStr, reveal=False):
     if currentOS == "win32":
       if reveal:
-        parameters = u'/n,/select,"%s"' % pathStr
+        folderPath = os.path.dirname(pathStr)
         result = win32api.ShellExecute(
-          0, u'open', u'explorer.exe', parameters, None, 5
+          0, u'open', folderPath, None, None, 5
         )
         if result <= 32:
-          raise OSError('ShellExecute could not start Explorer (code %s)' % result)
+          raise OSError('ShellExecute could not open folder (code %s)' % result)
         logger.info(
-          'Explorer accepted reveal request with result=%s parameters=%r',
-          result, parameters
+          'Windows shell accepted folder-open request with result=%s folder=%r',
+          result, folderPath
         )
       else:
         os.startfile(pathStr)
