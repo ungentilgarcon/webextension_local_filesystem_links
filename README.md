@@ -26,7 +26,7 @@ It contains:
 -   Windows opens documents through their registered file association; the reveal action selects the file in File Explorer.
 -   Windows reveal requests use the ShellExecute API to open the file's containing folder; failures are reported instead of being treated as successful launches.
 -   Native-host failures include the URL and Python traceback in the extension notification and background console.
--   The Windows native host writes startup and request diagnostics to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.
+-   Windows diagnostic logging is optional at installation time and disabled by default. If enabled, startup and requested local file paths are written to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.
 -   (Not available: Right click context menu that opens a text selection that contains a file link + option to reveal the directory of a directly linked file.)
 -   Whitelist option to enable local links only at a specific url e.g. `*.trello.com`
 -   Statusbar icon for displaying if links are active for current tab & for easier access to addon settings

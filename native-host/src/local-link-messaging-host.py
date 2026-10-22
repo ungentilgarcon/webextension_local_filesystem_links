@@ -23,6 +23,17 @@ LOG_PATH = None
 
 def configure_logging():
   global LOG_PATH
+  if getattr(sys, 'frozen', False):
+    host_path = sys.executable
+  else:
+    host_path = sys.argv[0]
+  logging_marker = os.path.join(
+    os.path.dirname(os.path.abspath(host_path)),
+    'logging.enabled'
+  )
+  if not os.path.isfile(logging_marker):
+    return
+
   app_data = os.environ.get('LOCALAPPDATA', os.path.expanduser('~'))
   log_dir = os.path.join(app_data, 'LocalFilesystemLinks')
   try:

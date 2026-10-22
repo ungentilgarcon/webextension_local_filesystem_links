@@ -37,6 +37,7 @@ PrivilegesRequired=lowest
 
 [Tasks]
 Name: Visualc; Description: Install Visual C++ re-distributable (required for the app - install if not already available); Flags: unchecked
+Name: EnableLogging; Description: Enable diagnostics (records requested local file paths in a log); Flags: unchecked
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -54,6 +55,9 @@ Source: "{#NativeHostRoot}\build\windows\vcredist_x86.exe"; DestDir: "{app}"; Af
 Root: HKLM; Subkey: "Software\Mozilla\NativeMessagingHosts\webextension_local_filesystem_links"; ValueType: string; ValueName: ""; ValueData: "{app}\webextension_local_filesystem_links_win.json"; Flags: uninsdeletekey; Check: not IsWin64 and isElevated
 Root: HKLM64; Subkey: "Software\Mozilla\NativeMessagingHosts\webextension_local_filesystem_links"; ValueType: string; ValueName: ""; ValueData: "{app}\webextension_local_filesystem_links_win.json"; Flags: uninsdeletekey; Check: IsWin64 and IsElevated
 Root: HKCU; Subkey: "Software\Mozilla\NativeMessagingHosts\webextension_local_filesystem_links"; ValueType: string; ValueName: ""; ValueData: "{app}\webextension_local_filesystem_links_win.json"; Flags: uninsdeletekey; Check: not IsElevated; 
+
+[UninstallDelete]
+Type: files; Name: "{app}\logging.enabled"
 
 [Code]
 var
@@ -198,6 +202,14 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
+    if WizardIsTaskSelected('EnableLogging') then
+    begin
+      if not SaveStringToFile(ExpandConstant('{app}\logging.enabled'), 'enabled', False) then
+        RaiseException('Could not enable native host diagnostic logging.');
+    end
+    else
+      DeleteFile(ExpandConstant('{app}\logging.enabled'));
+
     ManifestPath := ExpandConstant('{app}\webextension_local_filesystem_links_win.json');
     HostPath := JsonEscape(ExpandConstant('{app}\local-link-messaging-host.exe'));
     ManifestContents :=
