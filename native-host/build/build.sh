@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # Detects which OS and if it is Linux then it will detect which Linux
 # Distribution.
 
@@ -12,7 +13,7 @@ VERSION_INFO="# UTF-8
 VSVersionInfo(
   ffi=FixedFileInfo("
 
-if [[ "$OS" =~ ^MSYS.* ]]; then
+if [[ "$OS" =~ ^(MSYS|MINGW).* ]]; then
     BIN_DIR="bin/win32";
 elif [[ "$OS" =~ ^Linux.* ]]; then
     BIN_DIR="./bin/linux";

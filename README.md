@@ -20,6 +20,8 @@ It contains:
 -   File links in dynamically loaded content and embedded frames are intercepted during the capture phase before page click handlers run.
 -   Supports links with double and triple slashes (e.g. `file://` or `file:///`).
 -   On Windows, `file:///dfsburo/Donnees/path.docx` opens the network share `\\dfsburo\Donnees\path.docx`; drive-letter links such as `file:///C:/path/file.docx` continue to work.
+-   For a server-qualified network link, use `file://server/share/path`; for example, `file://villeurbanne.fr/dfsburo/Donnees/path.docx` maps to `\\villeurbanne.fr\dfsburo\Donnees\path.docx`. The host in the URL is significant.
+-   Percent-encoded filename characters (such as `%20` for spaces) are decoded before checking or opening the Windows path.
 -   Windows opens documents through their registered file association; the reveal action selects the file in File Explorer.
 -   Native-host failures include the URL and Python traceback in the extension notification and background console.
 -   The Windows native host writes startup and request diagnostics to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.

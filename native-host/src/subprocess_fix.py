@@ -86,9 +86,9 @@ def CreateProcess(executable, args, _p_attr, _t_attr,
         wShowWindow=startup_info.wShowWindow,
         cb=sizeof(STARTUPINFOW),
         ## XXXvlab: not sure of the casting here to ints.
-        hStdInput=int(startup_info.hStdInput),
-        hStdOutput=int(startup_info.hStdOutput),
-        hStdError=int(startup_info.hStdError),
+        hStdInput=int(startup_info.hStdInput) if startup_info.hStdInput else 0,
+        hStdOutput=int(startup_info.hStdOutput) if startup_info.hStdOutput else 0,
+        hStdError=int(startup_info.hStdError) if startup_info.hStdError else 0,
     )
 
     wenv = None

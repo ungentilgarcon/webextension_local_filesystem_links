@@ -159,7 +159,10 @@ def preparePath(pathStr):
   else:
       pathStr = re.sub(r'[a-z]*:[\/]{2}', '', pathStr) # remove file://
 
-  # pathStr = urllib.unquote(pathStr).decode('utf8')   # why was this here?
+  if isinstance(pathStr, unicode):
+    pathStr = urllib.unquote(pathStr.encode('utf-8')).decode('utf-8')
+  else:
+    pathStr = urllib.unquote(pathStr).decode('utf-8')
   if sys.platform.startswith('linux') or sys.platform == 'darwin':
     # hack to have ~ path working in Linux & mac os
     # one or two slashes before ~ // stop at first / after ~
@@ -254,7 +257,8 @@ def process_message(data):
         logger.error('Requested file path does not exist: %r', fileStr)
         send_json({
           "error": "ERROR_BAD_LINK",
-          "url": fileStr
+          "url": fileStr,
+          "detail": "Resolved filesystem path: %s" % preparePath(fileStr)
         })
 
 # Thread that reads messages from the webapp.

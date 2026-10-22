@@ -89,7 +89,13 @@ export class ExtensionEventHandlers {
                             response.detail ||
                             response.error;
 
-                        notify('Native host error', msg, 10000);
+                        notify(
+                            'Native host error',
+                            response.detail && messageKey === 'ERROR_BAD_LINK'
+                                ? msg + '\n' + response.detail
+                                : msg,
+                            10000
+                        );
                     } else {
                         setTimeout(() => {
                             ExtensionEventHandlers.sendNativeMessage(
