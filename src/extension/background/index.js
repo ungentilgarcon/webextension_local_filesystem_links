@@ -119,10 +119,12 @@ class LocalFileSystemExtension {
     injectCSS() {
         browser.tabs.insertCSS(null, {
             allFrames: true,
+            matchAboutBlank: true,
             file: 'css/self-hosted-materialize.css'
         });
         browser.tabs.insertCSS(null, {
             allFrames: true,
+            matchAboutBlank: true,
             file: 'css/style.css'
         });
     }
@@ -138,11 +140,13 @@ class LocalFileSystemExtension {
 
         return execute(null, {
             allFrames: true,
+            matchAboutBlank: true,
             file: 'js/jquery-3.3.1.min.js'
         })
             .then(() =>
                 execute(null, {
                     allFrames: true,
+                    matchAboutBlank: true,
                     file: './content.js',
                     runAt: 'document_end'
                 })
