@@ -14,6 +14,7 @@ import subprocess
 from subprocess import PIPE
 import os
 import re
+import traceback
 
 currentOS = sys.platform
 
@@ -178,33 +179,15 @@ def openFile(pathStr, reveal=False):
     p = Popen(command, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     p.communicate()
 
-# Thread that reads messages from the webapp.
-def read_thread_func(queue):
-  message_number = 0
-  while 1:
-    # Read the message length (first 4 bytes).
-    text_length_bytes = sys.stdin.read(4)
-
-    if len(text_length_bytes) == 0:
-      sys.exit(0)
-
-    # Unpack message length as 4 byte integer.
-    text_length = struct.unpack("i", text_length_bytes)[0]
-
-    # Read the text (JSON object) of the message.
-    text = sys.stdin.read(text_length).decode('utf-8')
-
-    data = json.loads(text)
-
+def process_message(data):
     fileStr = data['url']
     reveal = data['reveal']
-
     exeAllowed = data['exeAllowed']
-    # send_message(u"{\"debug\": \"%s\"}" % urllib.quote(fileStr.encode('utf-8')))
-    if (checkPath(fileStr)):
+
+    if checkPath(fileStr):
       result = getFilePath(fileStr, exeAllowed)
       if result is None:
-        send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED"})
+        send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED", "url": fileStr})
       else:
         try:
           if (reveal):
@@ -216,14 +199,14 @@ def read_thread_func(queue):
           send_json({
             "error": "ERROR_OPEN_FAILED",
             "url": fileStr,
-            "detail": str(err)
+            "detail": traceback.format_exc(),
+            "errorType": err.__class__.__name__
           })
     else:
-      # send_message(u"{\"debug not found\": \"%s\"}" % urllib.quote(fileStr.encode('utf-8')))
       if (reveal):
         result = getFilePath(fileStr, exeAllowed)
         if result is None:
-          send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED"})
+          send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED", "url": fileStr})
         else:
           try:
             openFile(os.path.dirname(result))
@@ -232,13 +215,38 @@ def read_thread_func(queue):
             send_json({
               "error": "ERROR_OPEN_FAILED",
               "url": fileStr,
-              "detail": str(err)
+              "detail": traceback.format_exc(),
+              "errorType": err.__class__.__name__
             })
       else:
         send_json({
           "error": "ERROR_BAD_LINK",
           "url": fileStr
         })
+
+# Thread that reads messages from the webapp.
+def read_thread_func(queue):
+  text_length_bytes = sys.stdin.read(4)
+  if len(text_length_bytes) == 0:
+    sys.exit(0)
+
+  data = {}
+  try:
+    text_length = struct.unpack("i", text_length_bytes)[0]
+    text = sys.stdin.read(text_length).decode('utf-8')
+    data = json.loads(text)
+    process_message(data)
+  except Exception as err:
+    try:
+      url = data.get('url', '') if isinstance(data, dict) else ''
+      send_json({
+        "error": "ERROR_NATIVE_HOST",
+        "url": url,
+        "detail": traceback.format_exc(),
+        "errorType": err.__class__.__name__
+      })
+    except Exception:
+      sys.stderr.write(traceback.format_exc())
 
     sys.exit(0)
 

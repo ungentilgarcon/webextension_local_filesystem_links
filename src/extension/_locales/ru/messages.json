@@ -71,6 +71,24 @@
             }
         }
     },
+    "ERROR_NATIVE_HOST": {
+        "message": "Ошибка Native Host ($ERROR_TYPE$) при обработке $URL$:\n$DETAIL$",
+        "description": "Неожиданная ошибка Native Host с диагностической трассировкой",
+        "placeholders": {
+            "url": {
+                "content": "$1",
+                "example": "file://server/share/document.docx"
+            },
+            "error_type": {
+                "content": "$2",
+                "example": "OSError"
+            },
+            "detail": {
+                "content": "$3",
+                "example": "Traceback (most recent call last):"
+            }
+        }
+    },
     "INFO_CONFIG_CHANGED_SMB": {
         "message": "Заработали ссылки на SMB-ресурсы!",
         "description": "Info message SMB configured (not used yet)"

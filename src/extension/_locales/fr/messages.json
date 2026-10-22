@@ -71,6 +71,24 @@
             }
         }
     },
+    "ERROR_NATIVE_HOST": {
+        "message": "Erreur de l'application native ($ERROR_TYPE$) pendant le traitement de $URL$ :\n$DETAIL$",
+        "description": "Erreur inattendue de l'application native avec trace de diagnostic",
+        "placeholders": {
+            "url": {
+                "content": "$1",
+                "example": "file://server/share/document.docx"
+            },
+            "error_type": {
+                "content": "$2",
+                "example": "OSError"
+            },
+            "detail": {
+                "content": "$3",
+                "example": "Traceback (most recent call last):"
+            }
+        }
+    },
     "INFO_CONFIG_CHANGED_SMB": {
         "message": "Configuration modifiée ! Les liens SMB sont maintenant activés",
         "description": "Message d'information SMB configuré (pas encore utilisé)"

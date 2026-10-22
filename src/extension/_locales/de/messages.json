@@ -79,6 +79,24 @@
             }
         }
     },
+    "ERROR_NATIVE_HOST": {
+        "message": "Fehler des Native Hosts ($ERROR_TYPE$) bei der Verarbeitung von $URL$:\n$DETAIL$",
+        "description": "Unerwarteter Native-Host-Fehler mit Diagnose-Traceback",
+        "placeholders": {
+            "url": {
+                "content": "$1",
+                "example": "file://server/share/document.docx"
+            },
+            "error_type": {
+                "content": "$2",
+                "example": "OSError"
+            },
+            "detail": {
+                "content": "$3",
+                "example": "Traceback (most recent call last):"
+            }
+        }
+    },
     "INFO_CONFIG_CHANGED_SMB": {
         "message": "Konfiguration geändert! SMB links sind jetzt aktiviert.",
         "description": "Info message SMB configured (not used yet)"

@@ -2,7 +2,7 @@ let notifyCount = 0;
 const CAKE_INTERVAL = 0.1;
 const cakeNotification = 'webextension-local-filesystem-links-notification';
 
-function notify(title, message) {
+function notify(title, message, duration = 2000) {
     notifyCount++;
     const id = `${cakeNotification}-${notifyCount}`;
 
@@ -19,7 +19,7 @@ function notify(title, message) {
             setTimeout(() => {
                 // console.log('cake cleared');
                 browser.notifications.clear(id);
-            }, 2000);
+            }, duration);
         });
 }
 

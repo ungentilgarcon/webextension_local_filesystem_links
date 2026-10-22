@@ -79,6 +79,24 @@
             }
         }
     },
+    "ERROR_NATIVE_HOST": {
+        "message": "Native host failed ($ERROR_TYPE$) while processing $URL$:\n$DETAIL$",
+        "description": "Unexpected native host error with diagnostic traceback",
+        "placeholders": {
+            "url": {
+                "content": "$1",
+                "example": "file://server/share/document.docx"
+            },
+            "error_type": {
+                "content": "$2",
+                "example": "OSError"
+            },
+            "detail": {
+                "content": "$3",
+                "example": "Traceback (most recent call last):"
+            }
+        }
+    },
     "INFO_CONFIG_CHANGED_SMB": {
         "message": "Configuration changed! SMB links now enabled",
         "description": "Info message SMB configured (not used yet)"

@@ -55,22 +55,41 @@ export class ExtensionEventHandlers {
                         handler.retriesOnFailure >=
                         handler.settings.retriesOnFailure
                     ) {
+                        console.error(
+                            'Native messaging host returned an error',
+                            {
+                                uri,
+                                response
+                            }
+                        );
                         const url = response.url
                             ? window.decodeURI(response.url)
                             : '';
+                        const messageKey =
+                            response.error === 'ERROR_NATIVE_HOST'
+                                ? 'ERROR_NATIVE_HOST'
+                                : response.error === 'ERROR_OPEN_FAILED'
+                                ? 'ERROR_OPEN_FAILED'
+                                : response.error;
                         const substitutions =
-                            response.error === 'ERROR_OPEN_FAILED'
+                            messageKey === 'ERROR_NATIVE_HOST'
+                                ? [
+                                      url,
+                                      response.errorType || 'UnknownError',
+                                      response.detail || ''
+                                  ]
+                                : messageKey === 'ERROR_OPEN_FAILED'
                                 ? [url, response.detail || '']
                                 : url;
                         const msg =
                             browser.i18n.getMessage(
-                                response.error,
+                                messageKey,
                                 substitutions
                             ) ||
                             response.detail ||
                             response.error;
 
-                        notify('Error', msg); // only NotFound error at the moment
+                        notify('Native host error', msg, 10000);
                     } else {
                         setTimeout(() => {
                             ExtensionEventHandlers.sendNativeMessage(
@@ -84,6 +103,10 @@ export class ExtensionEventHandlers {
                 }
             })
             .catch(err => {
+                console.error('Native messaging host launch failed', {
+                    uri,
+                    error: err
+                });
                 const nativeAppNotInstalled = err.message.includes(
                     'disconnected port'
                 )
@@ -93,9 +116,18 @@ export class ExtensionEventHandlers {
                       'menu.'
                     : '';
 
-                // console.log('error', err);
-                notify(err.name, err.message + '.' + nativeAppNotInstalled);
-            }); //ExtensionEventHandlers.onError(err));
+                notify(
+                    'Native messaging host error',
+                    [
+                        err.name + ': ' + err.message,
+                        'URL: ' + uri,
+                        err.stack || ''
+                    ]
+                        .filter(Boolean)
+                        .join('\n'),
+                    10000
+                );
+            });
     }
 
     /**
