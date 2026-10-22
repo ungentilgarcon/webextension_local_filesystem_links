@@ -129,14 +129,14 @@ class LocalFileSystemExtension {
 
     /** Insert JavaScript into page
      * @param {object} activeTab the currently active tab
-     * @returns {undefined}
+     * @returns {Promise}
      */
     injectScripts(activeTab) {
         // inject scripts
         // --> defaults to activetab
         const execute = browser.tabs.executeScript; // short-hand
 
-        execute(null, {
+        return execute(null, {
             allFrames: true,
             file: 'js/jquery-3.3.1.min.js'
         })
@@ -148,10 +148,9 @@ class LocalFileSystemExtension {
                 })
             )
             .then(() => {
-                // jquery & content script loaded --> now we can send init data
+                // Send init data to every frame where the scripts were injected.
                 const settings = this.settings;
-                // console.log("sending init to content script!!");
-                browser.tabs.sendMessage(activeTab.id, {
+                const initMessage = {
                     action: 'init',
                     data: {
                         options: {
@@ -160,7 +159,21 @@ class LocalFileSystemExtension {
                         },
                         constants: JSON.parse(JSON.stringify(CONSTANTS)) // Parse / stringify needed in FF 54 --> otherwise constants.MESSAGES were undefined
                     }
-                });
+                };
+
+                return browser.webNavigation
+                    .getAllFrames({ tabId: activeTab.id })
+                    .then(frames =>
+                        Promise.all(
+                            frames.map(({ frameId }) =>
+                                browser.tabs.sendMessage(
+                                    activeTab.id,
+                                    initMessage,
+                                    { frameId }
+                                )
+                            )
+                        )
+                    );
             });
     }
 

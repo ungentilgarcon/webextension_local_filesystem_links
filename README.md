@@ -16,6 +16,7 @@ It contains:
 -   Adds a click event to every link that is including `file://` or `smb://` in `href` tag. (smb not working yet)
 -   Shows a link icon close to the link. Icon can be disabled in preferences.
 -   Dynamic loaded content supported because link events are delegated with `$(document).on(...)`
+-   File links in embedded frames are supported as well as links in the main page.
 -   Supports links with double and triple slashes (e.g. `file://` or `file:///`).
 -   On Windows, `file:///dfsburo/Donnees/path.docx` opens the network share `\\dfsburo\Donnees\path.docx`; drive-letter links such as `file:///C:/path/file.docx` continue to work.
 -   (Not available: Right click context menu that opens a text selection that contains a file link + option to reveal the directory of a directly linked file.)
