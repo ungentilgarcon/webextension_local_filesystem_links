@@ -123,15 +123,15 @@ def preparePath(pathStr):
   # send_message('{"debug prepare": "%s"}' % pathStr.encode('utf-8'))
 
   if currentOS == "win32":
-      # add feature to allow 4 slashes too for UNC network addresses
-      regex = r'\bfile:(\/\/){2}\b';
-
-      #4 slashes? add another one to have 5 slashes
-      if re.match(regex, pathStr):
-          pathStr = re.sub("(%s)" % regex, r'\1/', pathStr)
-
-      # pathStr = re.sub(r'file:[\/]{2,3}', '', pathStr) # remove file:// (also any leading / needs to be removed in windows)
-      pathStr = re.sub(r'[a-z]*:[\/]{2,3}', '', pathStr) # remove file:// (also any leading / needs to be removed in windows)
+      file_uri = re.match(r'^file:(/+)(.*)$', pathStr, re.IGNORECASE)
+      if file_uri:
+          uri_path = file_uri.group(2)
+          if re.match(r'^[a-zA-Z]:/', uri_path):
+              pathStr = uri_path
+          elif len(file_uri.group(1)) >= 2:
+              pathStr = '//' + uri_path.lstrip('/')
+          else:
+              pathStr = uri_path
   else:
       pathStr = re.sub(r'[a-z]*:[\/]{2}', '', pathStr) # remove file://
 

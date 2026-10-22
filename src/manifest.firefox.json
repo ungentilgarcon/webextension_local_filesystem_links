@@ -3,7 +3,7 @@
     "options_ui": {
         "page": "options.html"
     },
-    "applications": {
+    "browser_specific_settings": {
         "gecko": {
             "id": "jid1-JAzC7z53jemo5Q@jetpack"
         }
