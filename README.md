@@ -12,6 +12,11 @@ add-on and the native host for your operating system.**
 -   Alternatively, download the [signed Firefox add-on](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/firefox-addon.xpi)
     or browse all assets in the [latest GitHub release](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest).
 
+**This source build uses a new Firefox add-on ID** because the previous ID is
+owned by the existing AMO listing. It will be a separate installation and will
+not automatically update existing installations. The AMO link above is for the
+previous add-on ID.
+
 ### 2. Install the native host
 
 The add-on needs this small companion application to open files outside the
