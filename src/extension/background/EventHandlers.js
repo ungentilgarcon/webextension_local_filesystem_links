@@ -121,6 +121,7 @@ export class ExtensionEventHandlers {
                     [
                         err.name + ': ' + err.message,
                         'URL: ' + uri,
+                        'If the host started, check %LOCALAPPDATA%\\LocalFilesystemLinks\\native-host.log.',
                         err.stack || ''
                     ]
                         .filter(Boolean)

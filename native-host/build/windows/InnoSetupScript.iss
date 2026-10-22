@@ -60,6 +60,22 @@ var
   Page: TInputOptionWizardPage;
   InstallationOnlyMe: Boolean;
 
+function JsonEscape(const Value: String): String;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 1 to Length(Value) do
+  begin
+    if Value[I] = '\' then
+      Result := Result + '\\'
+    else if Value[I] = '"' then
+      Result := Result + '\"'
+    else
+      Result := Result + Value[I];
+  end;
+end;
+
 procedure InitializeWizard;
 begin
   // Create the page
@@ -172,6 +188,31 @@ begin
         end;
     end;
   Result := res
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ManifestPath: String;
+  HostPath: String;
+  ManifestContents: String;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    ManifestPath := ExpandConstant('{app}\webextension_local_filesystem_links_win.json');
+    HostPath := JsonEscape(ExpandConstant('{app}\local-link-messaging-host.exe'));
+    ManifestContents :=
+      '{' + #13#10 +
+      '  "name": "webextension_local_filesystem_links",' + #13#10 +
+      '  "description": "Local file links Native Messaging API Host",' + #13#10 +
+      '  "path": "' + HostPath + '",' + #13#10 +
+      '  "type": "stdio",' + #13#10 +
+      '  "allowed_extensions": [' + #13#10 +
+      '    "jid1-JAzC7z53jemo5Q@jetpack"' + #13#10 +
+      '  ]' + #13#10 +
+      '}' + #13#10;
+    if not SaveStringToFile(ManifestPath, UTF8Encode(ManifestContents), False) then
+      RaiseException('Could not write native messaging host manifest: ' + ManifestPath);
+  end;
 end;
 
 // check HKCU for onlyMe or HKLM for allUsers

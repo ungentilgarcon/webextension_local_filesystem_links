@@ -14,9 +14,33 @@ import subprocess
 from subprocess import PIPE
 import os
 import re
+import logging
 import traceback
 
 currentOS = sys.platform
+logger = logging.getLogger('local-filesystem-links-native-host')
+LOG_PATH = None
+
+def configure_logging():
+  global LOG_PATH
+  app_data = os.environ.get('LOCALAPPDATA', os.path.expanduser('~'))
+  log_dir = os.path.join(app_data, 'LocalFilesystemLinks')
+  try:
+    if not os.path.isdir(log_dir):
+      os.makedirs(log_dir)
+    LOG_PATH = os.path.join(log_dir, 'native-host.log')
+    logging.basicConfig(
+      filename=LOG_PATH,
+      level=logging.DEBUG,
+      format='%(asctime)s %(levelname)s %(message)s'
+    )
+    logger.info('Native host started; Python=%s platform=%s', sys.version, sys.platform)
+  except Exception:
+    sys.stderr.write('Could not initialize native host log at %s\n' % log_dir)
+    sys.stderr.write(traceback.format_exc())
+
+if currentOS == "win32":
+  configure_logging()
 
 fileExplorers = {
   "win32": {
@@ -183,10 +207,13 @@ def process_message(data):
     fileStr = data['url']
     reveal = data['reveal']
     exeAllowed = data['exeAllowed']
+    logger.info('Received request: url=%r reveal=%r executables_allowed=%r',
+                fileStr, reveal, exeAllowed)
 
     if checkPath(fileStr):
       result = getFilePath(fileStr, exeAllowed)
       if result is None:
+        logger.warning('Rejected executable link: %r', fileStr)
         send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED", "url": fileStr})
       else:
         try:
@@ -194,8 +221,10 @@ def process_message(data):
             openFile(result, True)
           else:
             openFile(result)
+          logger.info('Open request dispatched successfully: %r', result)
           send_json({"error": None})
         except Exception as err:
+          logger.exception('Could not open requested path: %r', result)
           send_json({
             "error": "ERROR_OPEN_FAILED",
             "url": fileStr,
@@ -206,12 +235,15 @@ def process_message(data):
       if (reveal):
         result = getFilePath(fileStr, exeAllowed)
         if result is None:
+          logger.warning('Rejected executable reveal request: %r', fileStr)
           send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED", "url": fileStr})
         else:
           try:
             openFile(os.path.dirname(result))
+            logger.info('Reveal request dispatched successfully: %r', result)
             send_json({"error": None})
           except Exception as err:
+            logger.exception('Could not reveal requested path: %r', result)
             send_json({
               "error": "ERROR_OPEN_FAILED",
               "url": fileStr,
@@ -219,6 +251,7 @@ def process_message(data):
               "errorType": err.__class__.__name__
             })
       else:
+        logger.error('Requested file path does not exist: %r', fileStr)
         send_json({
           "error": "ERROR_BAD_LINK",
           "url": fileStr
@@ -228,6 +261,7 @@ def process_message(data):
 def read_thread_func(queue):
   text_length_bytes = sys.stdin.read(4)
   if len(text_length_bytes) == 0:
+    logger.info('Native messaging input closed before receiving a request')
     sys.exit(0)
 
   data = {}
@@ -235,8 +269,10 @@ def read_thread_func(queue):
     text_length = struct.unpack("i", text_length_bytes)[0]
     text = sys.stdin.read(text_length).decode('utf-8')
     data = json.loads(text)
+    logger.debug('Decoded native messaging request: %r', data)
     process_message(data)
   except Exception as err:
+    logger.exception('Unexpected native host failure')
     try:
       url = data.get('url', '') if isinstance(data, dict) else ''
       send_json({

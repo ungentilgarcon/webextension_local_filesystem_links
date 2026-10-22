@@ -22,6 +22,7 @@ It contains:
 -   On Windows, `file:///dfsburo/Donnees/path.docx` opens the network share `\\dfsburo\Donnees\path.docx`; drive-letter links such as `file:///C:/path/file.docx` continue to work.
 -   Windows opens documents through their registered file association; the reveal action selects the file in File Explorer.
 -   Native-host failures include the URL and Python traceback in the extension notification and background console.
+-   The Windows native host writes startup and request diagnostics to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.
 -   (Not available: Right click context menu that opens a text selection that contains a file link + option to reveal the directory of a directly linked file.)
 -   Whitelist option to enable local links only at a specific url e.g. `*.trello.com`
 -   Statusbar icon for displaying if links are active for current tab & for easier access to addon settings

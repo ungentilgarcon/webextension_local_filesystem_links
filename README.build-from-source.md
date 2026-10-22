@@ -26,6 +26,7 @@
     $ ISCC.exe build/windows/InnoSetupScript.iss
 
     The installer is written to `native-host/bin/win32/native-app-setup.exe`.
+    The installer writes an absolute executable path into the registered Firefox native-host manifest. Runtime diagnostics are written to `%LOCALAPPDATA%\LocalFilesystemLinks\native-host.log`.
 
 6. Manually upload the Firefox ZIP here: https://addons.mozilla.org/en-US/developers/addon/local-filesystem-links/versions
     - Upload Version -> Select a file...
