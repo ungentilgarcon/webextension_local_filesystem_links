@@ -10,13 +10,9 @@ class LocalFileSystemExtension {
     constructor() {
         this.settings = {};
         this.injectedTabs = {};
+        this.injectingTabs = {};
         this.eventHandlers = new ExtensionEventHandlers(this.settings);
         this.addListeners();
-
-        browser.storage.local.get('injectedTabs').then(({ injectedTabs }) => {
-            // console.log("loaded tabs from local storage", injectedTabs);
-            this.injectedTabs = injectedTabs || {};
-        });
     }
 
     /** Add eventlisteners of the extension
@@ -77,7 +73,6 @@ class LocalFileSystemExtension {
             if (details.transitionQualifiers.includes('forward_back')) {
                 // console.log("using cached page");
                 this.injectedTabs[details.tabId] = true; // Add tabId to keep track of cached injection.
-                browser.storage.local.set({ injectedTabs: this.injectedTabs });
             }
         };
 
@@ -86,17 +81,10 @@ class LocalFileSystemExtension {
         // check if first installation or update
         browser.runtime.onInstalled.addListener(checkInstallation);
     }
-    /**
-     * Remove tab from injectedTabs array (if exists)
-     * @param {integer} windowId id of current window
-     * @param {integer} tabId id of tab to remove
-     */
+    /** Clear injection state when a tab navigates or closes. */
     removeTabFromInjectedTabs(id) {
-        if (this.injectedTabs[id]) {
-            // console.log('remove id', id);
-            delete this.injectedTabs[id];
-            browser.storage.local.set({ injectedTabs: this.injectedTabs });
-        }
+        delete this.injectedTabs[id];
+        delete this.injectingTabs[id];
     }
     /** Check the urls (if active tab is whitelisted)
      * @returns {undefined}
@@ -116,17 +104,19 @@ class LocalFileSystemExtension {
     /** Insert CSS into page
      * @returns {undefined}
      */
-    injectCSS() {
-        browser.tabs.insertCSS(null, {
-            allFrames: true,
-            matchAboutBlank: true,
-            file: 'css/self-hosted-materialize.css'
-        });
-        browser.tabs.insertCSS(null, {
-            allFrames: true,
-            matchAboutBlank: true,
-            file: 'css/style.css'
-        });
+    injectCSS(tabId) {
+        return Promise.all([
+            browser.tabs.insertCSS(tabId, {
+                allFrames: true,
+                matchAboutBlank: true,
+                file: 'css/self-hosted-materialize.css'
+            }),
+            browser.tabs.insertCSS(tabId, {
+                allFrames: true,
+                matchAboutBlank: true,
+                file: 'css/style.css'
+            })
+        ]);
     }
 
     /** Insert JavaScript into page
@@ -136,15 +126,16 @@ class LocalFileSystemExtension {
     injectScripts(activeTab) {
         // inject scripts
         // --> defaults to activetab
-        const execute = browser.tabs.executeScript; // short-hand
+        const tabId = activeTab.id;
 
-        return execute(null, {
-            allFrames: true,
-            matchAboutBlank: true,
-            file: 'js/jquery-3.3.1.min.js'
-        })
+        return browser.tabs
+            .executeScript(tabId, {
+                allFrames: true,
+                matchAboutBlank: true,
+                file: 'js/jquery-3.3.1.min.js'
+            })
             .then(() =>
-                execute(null, {
+                browser.tabs.executeScript(tabId, {
                     allFrames: true,
                     matchAboutBlank: true,
                     file: './content.js',
@@ -166,15 +157,13 @@ class LocalFileSystemExtension {
                 };
 
                 return browser.webNavigation
-                    .getAllFrames({ tabId: activeTab.id })
+                    .getAllFrames({ tabId })
                     .then(frames =>
                         Promise.all(
                             frames.map(({ frameId }) =>
-                                browser.tabs.sendMessage(
-                                    activeTab.id,
-                                    initMessage,
-                                    { frameId }
-                                )
+                                browser.tabs.sendMessage(tabId, initMessage, {
+                                    frameId
+                                })
                             )
                         )
                     );
@@ -220,14 +209,22 @@ class LocalFileSystemExtension {
             // show enhancement at addon bar icon
             updateAddonbarIcon(true);
 
-            // console.log("check injected tabs", this.injectedTabs, activeTab.id)
-            if (!this.injectedTabs[activeTab.id]) {
-                // add scripts & css to the page (only once per tab)
-                // console.log('inject', activeTab.id);
-                this.injectCSS();
-                this.injectScripts(activeTab);
-                this.injectedTabs[activeTab.id] = true; // add id to keep track of injection.
-                browser.storage.local.set({ injectedTabs: this.injectedTabs });
+            if (
+                !this.injectedTabs[activeTab.id] &&
+                !this.injectingTabs[activeTab.id]
+            ) {
+                this.injectingTabs[activeTab.id] = true;
+                this.injectCSS(activeTab.id)
+                    .then(() => this.injectScripts(activeTab))
+                    .then(() => {
+                        this.injectedTabs[activeTab.id] = true;
+                    })
+                    .catch(err => {
+                        ExtensionEventHandlers.onError(err);
+                    })
+                    .finally(() => {
+                        delete this.injectingTabs[activeTab.id];
+                    });
             }
         };
 
