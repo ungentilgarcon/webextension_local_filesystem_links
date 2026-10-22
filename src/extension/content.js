@@ -119,7 +119,7 @@
     function registerEvents() {
         // console.log("registering events!");
 
-        $(document).on('click', fileLinkSelectors.join(', '), openFileHandler);
+        document.addEventListener('click', openFileHandler, true);
 
         // icon click handler
         $(document).on(
@@ -131,7 +131,7 @@
 
     function unregisterEvents() {
         // console.log("unregistering!!")
-        $(document).off('click', fileLinkSelectors.join(', '), openFileHandler);
+        document.removeEventListener('click', openFileHandler, true);
         $(document).off(
             'click',
             "[class^='aliensun-link-icon']",
@@ -140,8 +140,18 @@
     }
 
     function openFileHandler(e) {
-        // console.log('event side content script', e);
-        e.preventDefault(); // prevent default to avoid browser to launch smb://
+        const target =
+            e.target.nodeType === Node.ELEMENT_NODE
+                ? e.target
+                : e.target.parentElement;
+        const link = target && target.closest(fileLinkSelectors.join(', '));
+
+        if (!link) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
         browser.runtime.sendMessage({
             // port.sendMessage({
@@ -149,7 +159,7 @@
             // removed decodeURIComponent because env. var. failed
             // --> decoding needed for accents
             message: 'hello',
-            url: decodeURIComponent(this.href), // this.href
+            url: decodeURIComponent(link.href),
             reveal: options.revealOpenOption == 'O' ? false : true,
             directOpen: options.revealOpenOption == 'D'
         });
