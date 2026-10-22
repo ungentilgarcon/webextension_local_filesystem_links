@@ -205,8 +205,8 @@ def openFile(pathStr, reveal=False):
 
 def process_message(data):
     fileStr = data['url']
-    reveal = data['reveal']
-    exeAllowed = data['exeAllowed']
+    reveal = data.get('reveal', False)
+    exeAllowed = data.get('exeAllowed', False)
     logger.info('Received request: url=%r reveal=%r executables_allowed=%r',
                 fileStr, reveal, exeAllowed)
 

@@ -247,6 +247,7 @@ export class ExtensionEventHandlers {
      */
     onSettingsLoaded(settings, callback) {
         const loadedSettings = Object.assign({}, defaultSettings, settings);
+        this.settings = loadedSettings;
         const whitelist = loadedSettings.whitelist.trim()
             ? prepareWhitelist(loadedSettings.whitelist.trim())
             : [];
