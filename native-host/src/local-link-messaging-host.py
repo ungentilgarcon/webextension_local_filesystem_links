@@ -180,6 +180,23 @@ def checkPath(pathStr):
   # send_message(u'{"debug match": "%s"}' % pathStr.startswith('//'))
   return os.path.exists(pathStr)
 
+def getFallbackPath(pathStr, fallbackServer):
+  normalized_uri = re.sub(r'\\', '/', pathStr)
+  match = re.match(r'^file:///(?!/)([^/]+)(/.*)?$', normalized_uri, re.IGNORECASE)
+  if not match or re.match(r'^[a-zA-Z]:$', match.group(1)):
+    return None
+
+  fallbackServer = fallbackServer.strip()
+  if not fallbackServer:
+    return None
+  if not re.match(r'^[A-Za-z0-9][A-Za-z0-9.-]*$', fallbackServer):
+    raise ValueError('Fallback server must be a hostname without a scheme or path')
+
+  fallback_path = '//' + fallbackServer + '/' + match.group(1)
+  if match.group(2):
+    fallback_path += match.group(2)
+  return preparePath(fallback_path)
+
 def getFilePath(program, exeAllowed):
   filePath = preparePath(program)
 
@@ -210,11 +227,33 @@ def process_message(data):
     fileStr = data['url']
     reveal = data.get('reveal', False)
     exeAllowed = data.get('exeAllowed', False)
-    logger.info('Received request: url=%r reveal=%r executables_allowed=%r',
-                fileStr, reveal, exeAllowed)
+    fallbackServer = data.get('fallbackServer', '')
+    logger.info('Received request: url=%r reveal=%r executables_allowed=%r fallback_server=%r',
+                fileStr, reveal, exeAllowed, fallbackServer)
 
-    if checkPath(fileStr):
-      result = getFilePath(fileStr, exeAllowed)
+    try:
+      resolvedPath = preparePath(fileStr)
+      fallbackPath = None
+      pathExists = os.path.exists(resolvedPath)
+      if not pathExists:
+        fallbackPath = getFallbackPath(fileStr, fallbackServer)
+        if fallbackPath and os.path.exists(fallbackPath):
+          resolvedPath = fallbackPath
+          pathExists = True
+    except (AttributeError, TypeError, ValueError) as err:
+      logger.warning('Invalid fallback server setting: %r', fallbackServer)
+      send_json({
+        "error": "ERROR_BAD_FALLBACK_SERVER",
+        "url": fileStr,
+        "detail": str(err)
+      })
+      return
+
+    if fallbackPath and pathExists:
+      logger.info('Using fallback server path: %r', fallbackPath)
+
+    if pathExists:
+      result = getFilePath(resolvedPath, exeAllowed)
       if result is None:
         logger.warning('Rejected executable link: %r', fileStr)
         send_json({"error": "ERROR_EXECTUBALES_NOT_ENABLED", "url": fileStr})
@@ -255,10 +294,13 @@ def process_message(data):
             })
       else:
         logger.error('Requested file path does not exist: %r', fileStr)
+        detail = "Resolved filesystem path: %s" % resolvedPath
+        if fallbackPath:
+          detail += "; fallback path tried: %s" % fallbackPath
         send_json({
           "error": "ERROR_BAD_LINK",
           "url": fileStr,
-          "detail": "Resolved filesystem path: %s" % preparePath(fileStr)
+          "detail": detail
         })
 
 # Thread that reads messages from the webapp.

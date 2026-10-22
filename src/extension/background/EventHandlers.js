@@ -45,7 +45,8 @@ export class ExtensionEventHandlers {
                 {
                     url: uri,
                     reveal: request.reveal,
-                    exeAllowed: handler.settings.enableExecutables
+                    exeAllowed: handler.settings.enableExecutables,
+                    fallbackServer: handler.settings.fallbackServer
                 }
             )
             .then(function(response) {

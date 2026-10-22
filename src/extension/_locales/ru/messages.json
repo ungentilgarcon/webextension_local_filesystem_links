@@ -7,6 +7,14 @@
         "message": "По-умолчанию кликабельны все ссылки, которые распознает дополнение, но вы можете добавить нераспознанные URL-адреса вручную, разделяя их пробелом. Допускается использование подстановочных знаков, например, *://*.trello.com/*",
         "description": "Settings description for whitelist"
     },
+    "fallbackServer_title": {
+        "message": "Резервный сервер для сетевых ссылок без имени узла",
+        "description": "Settings title for network path fallback"
+    },
+    "fallbackServer_description": {
+        "message": "Необязательное имя сервера, используемое, если путь file:/// не найден локально. Например, villeurbanne.fr преобразует file:///dfsburo/Donnees/file.docx в \\\\villeurbanne.fr\\dfsburo\\Donnees\\file.docx. Укажите только имя узла, без косых черт.",
+        "description": "Settings description for network path fallback"
+    },
     "enableExecutables_title": {
         "message": "Разрешить ссылки на исполняемые файлы",
         "description": "Settings title for enable of executable files"
@@ -56,6 +64,10 @@
                 "example": "file://"
             }
         }
+    },
+    "ERROR_BAD_FALLBACK_SERVER": {
+        "message": "Резервный сервер должен быть именем узла без схемы и пути.",
+        "description": "Error message for invalid fallback server setting"
     },
     "ERROR_OPEN_FAILED": {
         "message": "Windows не удалось открыть $URL$: $DETAIL$",

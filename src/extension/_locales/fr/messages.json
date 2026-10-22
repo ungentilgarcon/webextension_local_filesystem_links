@@ -7,6 +7,14 @@
         "message": "Toutes les URL qui sont ajoutées à la liste blanche activeront les liens de fichiers locaux si vous naviguez vers cette adresse. * activera tout. Vide désactivera tout. Les URL multiples sont séparées par des espaces. Les caractères génériques sont autorisés, par exemple *://*.trello.com/*.",
         "description": "Description des paramètres de la liste blanche"
     },
+    "fallbackServer_title": {
+        "message": "Serveur de secours pour les liens réseau sans nom d'hôte",
+        "description": "Titre du paramètre de serveur de secours"
+    },
+    "fallbackServer_description": {
+        "message": "Nom d'hôte facultatif utilisé si un lien file:///chemin est introuvable localement. Par exemple, villeurbanne.fr transforme file:///dfsburo/Donnees/fichier.docx en \\\\villeurbanne.fr\\dfsburo\\Donnees\\fichier.docx. Saisissez uniquement le nom d'hôte, sans barre oblique.",
+        "description": "Description du paramètre de serveur de secours"
+    },
     "enableExecutables_title": {
         "message": "Activer les liens vers les fichiers exécutables locaux",
         "description": "Titre des paramètres pour l'activation des fichiers exécutables"
@@ -56,6 +64,10 @@
                 "example": "fichier://"
             }
         }
+    },
+    "ERROR_BAD_FALLBACK_SERVER": {
+        "message": "Le serveur de secours doit être un nom d'hôte, sans schéma ni chemin.",
+        "description": "Erreur de configuration du serveur de secours"
     },
     "ERROR_OPEN_FAILED": {
         "message": "Windows n'a pas pu ouvrir $URL$ : $DETAIL$",

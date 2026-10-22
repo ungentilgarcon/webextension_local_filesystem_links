@@ -11,6 +11,8 @@ export default withRender({
         return {
             whitelistTitle: getI18n('whitelist_title'),
             whitelistDescription: getI18n('whitelist_description'),
+            fallbackServerTitle: getI18n('fallbackServer_title'),
+            fallbackServerDescription: getI18n('fallbackServer_description'),
             enableExecutablesTitle: getI18n('enableExecutables_title'),
             enableExecutablesDescription: getI18n(
                 'enableExecutables_description'

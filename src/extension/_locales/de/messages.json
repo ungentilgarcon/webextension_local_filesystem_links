@@ -7,6 +7,14 @@
         "message": "Jede URL, die in der White-list aufgeführt ist, aktiviert Links zu lokalen Dateien auf Webseiten mit diesen Adressen. * lässt jede Url zu. Leer lässt keine Url zu. Mehrere URLs werden mit Leerzeichen getrennt. Wildcards sind zuläassig z.B. *://*.trello.com/*",
         "description": "Settings description for whitelist"
     },
+    "fallbackServer_title": {
+        "message": "Ausweichserver für nicht qualifizierte Netzwerklinks",
+        "description": "Settings title for network path fallback"
+    },
+    "fallbackServer_description": {
+        "message": "Optionaler Servername, der verwendet wird, wenn ein file:///Pfad lokal nicht gefunden wird. Beispiel: villeurbanne.fr ordnet file:///dfsburo/Donnees/file.docx dem Pfad \\\\villeurbanne.fr\\dfsburo\\Donnees\\file.docx zu. Nur den Servernamen ohne Schrägstriche eingeben.",
+        "description": "Settings description for network path fallback"
+    },
     "enableExecutables_title": {
         "message": "Aktiviert Links zu lokalen ausführbaren Dateien",
         "description": "Settings title for enable of executable files"
@@ -64,6 +72,10 @@
                 "example": "file://"
             }
         }
+    },
+    "ERROR_BAD_FALLBACK_SERVER": {
+        "message": "Der Ausweichserver muss ein Hostname ohne Schema oder Pfad sein.",
+        "description": "Error message for invalid fallback server setting"
     },
     "ERROR_OPEN_FAILED": {
         "message": "Windows konnte $URL$ nicht öffnen: $DETAIL$",

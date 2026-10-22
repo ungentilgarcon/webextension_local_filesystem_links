@@ -7,6 +7,14 @@
         "message": "Any URLs that are added to the whitelist will enable local file links if you're browsing to that address. * will enable all. Empty will disable all. Multiple URLs are space separated. Wildcards are allowed e.g. *://*.trello.com/*",
         "description": "Settings description for whitelist"
     },
+    "fallbackServer_title": {
+        "message": "Fallback server for unqualified network links",
+        "description": "Settings title for network path fallback"
+    },
+    "fallbackServer_description": {
+        "message": "Optional server hostname used when a file:///path link cannot be found locally. For example, entering villeurbanne.fr maps file:///dfsburo/Donnees/file.docx to \\\\villeurbanne.fr\\dfsburo\\Donnees\\file.docx. Enter only the hostname, without slashes.",
+        "description": "Settings description for network path fallback"
+    },
     "enableExecutables_title": {
         "message": "Enable links to local executable files",
         "description": "Settings title for enable of executable files"
@@ -64,6 +72,10 @@
                 "example": "file://"
             }
         }
+    },
+    "ERROR_BAD_FALLBACK_SERVER": {
+        "message": "The fallback server must be a hostname without a scheme or path.",
+        "description": "Error message for invalid fallback server setting"
     },
     "ERROR_OPEN_FAILED": {
         "message": "Windows could not open $URL$: $DETAIL$",

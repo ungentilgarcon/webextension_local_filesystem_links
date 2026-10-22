@@ -13,6 +13,21 @@
         />
     </div>
 
+    <!-- Fallback server for unqualified network paths -->
+    <label class="title" for="fallbackServer">{{fallbackServerTitle}}</label>
+    <div class="container">
+        <p class="description">
+            {{fallbackServerDescription}}
+        </p>
+        <input
+            id="fallbackServer"
+            type="text"
+            name="fallbackServer"
+            v-model="settings.fallbackServer"
+            placeholder="villeurbanne.fr"
+        />
+    </div>
+
     <!-- <hr/> -->
     <!-- Enable executables -->
     <label class="title" for="enableExe">{{enableExecutablesTitle}}</label>
