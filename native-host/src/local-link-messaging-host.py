@@ -211,7 +211,9 @@ def send_json(message):
 def openFile(pathStr, reveal=False):
     if currentOS == "win32":
       if reveal:
-        Popen(["explorer.exe", "/select,", pathStr])
+        command = u'explorer.exe /select,"%s"' % pathStr
+        process = Popen(command)
+        logger.info('Started Explorer reveal process pid=%s', process.pid)
       else:
         os.startfile(pathStr)
       return
