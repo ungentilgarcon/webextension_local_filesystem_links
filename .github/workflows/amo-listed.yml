@@ -1,0 +1,56 @@
+name: Submit Firefox add-on to AMO
+
+on:
+    workflow_dispatch:
+        inputs:
+            ref:
+                description: Git tag or ref to submit
+                required: true
+                default: v0.2.16
+                type: string
+
+permissions:
+    contents: read
+
+jobs:
+    submit:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.ref }}
+                  path: submission-source
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+                  cache-dependency-path: submission-source/package-lock.json
+            - run: npm ci
+              working-directory: submission-source
+            - run: npm run lint
+              working-directory: submission-source
+            - run: npm run build
+              working-directory: submission-source
+            - name: Validate Firefox add-on
+              run: npx --yes web-ext@10 lint --source-dir ./submission-source/dist
+            - name: Prepare source archive
+              run: git -C submission-source archive --format=tar.gz --output=source-code.tar.gz HEAD
+            - name: Submit listed version to AMO
+              env:
+                  AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+                  AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+              run: |
+                  if [[ -z "$AMO_JWT_ISSUER" || -z "$AMO_JWT_SECRET" ]]; then
+                    echo "::error::Set AMO_JWT_ISSUER and AMO_JWT_SECRET in repository Actions secrets."
+                    exit 1
+                  fi
+                  npx --yes web-ext@10 sign \
+                    --source-dir ./submission-source/dist \
+                    --artifacts-dir ./amo-artifacts \
+                    --api-key "$AMO_JWT_ISSUER" \
+                    --api-secret "$AMO_JWT_SECRET" \
+                    --channel listed \
+                    --amo-metadata ./amo-metadata.json \
+                    --upload-source-code ./source-code.tar.gz \
+                    --approval-timeout 0

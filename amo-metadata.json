@@ -1,0 +1,10 @@
+{
+    "summary": {
+        "en-US": "Open local and network file links from Firefox using the companion native host."
+    },
+    "categories": ["other"],
+    "version": {
+        "license": "MPL-2.0",
+        "approval_notes": "This add-on handles file:// links on pages permitted by the user's whitelist and passes the selected path to the separately installed native messaging host so the operating system can open or reveal it. It does not transmit browsing data or file contents to a remote service. The source archive is included with this submission."
+    }
+}

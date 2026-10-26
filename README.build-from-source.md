@@ -101,6 +101,20 @@ version tag is pushed. It creates a **draft** release so the assets and notes
 can be checked before they are published. No Linux host package is built by
 this workflow.
 
+### Submit the Firefox add-on for public AMO listing
+
+The release workflow signs the extension as **unlisted** for GitHub downloads.
+To submit a version for public discovery on Firefox Add-ons, run the separate
+**Submit Firefox add-on to AMO** workflow from the repository's Actions page.
+Enter the release tag to submit (for example, `v0.2.16`). This uses the
+`amo-metadata.json` listing details and includes a source archive. Mozilla
+validates and reviews the submission; a successful upload does not mean the
+listing is immediately approved or publicly visible.
+
+This source build has a different Firefox add-on ID from the older AMO listing.
+Submitting it creates or updates a separate listing and will not update the
+older listing or automatically migrate its users.
+
 ### One-time repository setup
 
 In the GitHub repository, open **Settings → Secrets and variables → Actions**

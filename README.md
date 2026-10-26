@@ -15,7 +15,9 @@ add-on and the native host for your operating system.**
 **This source build uses a new Firefox add-on ID** because the previous ID is
 owned by the existing AMO listing. It will be a separate installation and will
 not automatically update existing installations. The AMO link above is for the
-previous add-on ID.
+previous add-on ID and its listing is not updated by the source build. Public
+availability of the new ID depends on its separate AMO listing submission and
+Mozilla review.
 
 ### 2. Install the native host
 
