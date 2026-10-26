@@ -26,7 +26,9 @@ The add-on needs this small companion application to open files outside the
 browser:
 
 -   **Windows:** [Download and run the native-host installer](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/native-app-setup.exe).
-    Diagnostic logging is optional in the installer and off by default.
+    Diagnostic logging is optional and off by default. The installer also
+    offers an unchecked, optional PayPal support link on its final screen;
+    donating is never required.
 -   **Linux:** There is no prebuilt Linux native-host download in the current
     release. Linux users need to build and install it from source; see
     [Linux native-host setup](README.build-from-source.md#linux-native-host).
@@ -121,5 +123,6 @@ Linux native-host build details.
 ## Donations
 
 `ungentilgarcon` is the current maintainer and main contributor. If this add-on
-is useful to you, please support ongoing development and maintenance with a
-[PayPal contribution to the current maintainer](https://paypal.me/ungentilgarcon).
+is useful to you, you can optionally support ongoing development and maintenance
+with a [PayPal contribution to the current maintainer](https://paypal.me/ungentilgarcon).
+Donations are voluntary and are not required to install or use the add-on.

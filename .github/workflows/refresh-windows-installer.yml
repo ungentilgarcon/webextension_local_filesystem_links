@@ -1,0 +1,66 @@
+name: Refresh Windows installer
+
+on:
+    workflow_dispatch:
+        inputs:
+            release_tag:
+                description: Existing release tag to update (must match the native-host version)
+                required: true
+                type: string
+
+permissions:
+    contents: write
+
+jobs:
+    refresh:
+        runs-on: windows-2022
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: '3.15'
+                  architecture: x64
+            - name: Install native-host dependencies
+              shell: pwsh
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install -r native-host/requirements.txt
+            - name: Test native host
+              shell: pwsh
+              run: python -m unittest discover -s native-host/tests -v
+            - name: Build Windows native host
+              shell: bash
+              run: |
+                  cd native-host
+                  bash build/build.sh
+            - name: Install Inno Setup
+              shell: pwsh
+              run: choco install innosetup --yes --no-progress
+            - name: Build and upload installer
+              shell: pwsh
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  RELEASE_TAG: ${{ inputs.release_tag }}
+              run: |
+                  $hostVersion = (Get-Content native-host/package.json | ConvertFrom-Json).version
+                  if ($env:RELEASE_TAG -notmatch '^v\d+\.\d+\.\d+$' -or
+                      $env:RELEASE_TAG -ne "v$hostVersion") {
+                    throw "Release tag must match the native-host version v$hostVersion."
+                  }
+
+                  $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+                  if (-not (Test-Path $iscc)) {
+                    throw "Inno Setup compiler not found at $iscc"
+                  }
+                  & $iscc "native-host\build\windows\InnoSetupScript.iss"
+                  if ($LASTEXITCODE -ne 0) {
+                    throw "Inno Setup failed with exit code $LASTEXITCODE"
+                  }
+
+                  $installer = "native-host\bin\win32\native-app-setup.exe"
+                  if (-not (Test-Path $installer)) {
+                    throw "Installer was not created at $installer"
+                  }
+                  Copy-Item $installer "native-app-setup-$hostVersion.exe"
+                  gh release view $env:RELEASE_TAG | Out-Null
+                  gh release upload $env:RELEASE_TAG $installer "native-app-setup-$hostVersion.exe" --clobber

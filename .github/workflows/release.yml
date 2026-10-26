@@ -162,6 +162,10 @@ jobs:
                   Windows users can optionally enable diagnostic logging during installation.
                   Linux has no prebuilt host in this release; Chrome is not supported.
 
+                  If this project is useful to you, you can optionally support its
+                  maintenance with a [PayPal donation](https://paypal.me/ungentilgarcon).
+                  Donations are voluntary and are not required to use the add-on.
+
                   ## Assets
 
                   - \`firefox-addon.xpi\` is the current signed Firefox add-on.

@@ -59,6 +59,9 @@ Root: HKCU; Subkey: "Software\Mozilla\NativeMessagingHosts\webextension_local_fi
 [UninstallDelete]
 Type: files; Name: "{app}\logging.enabled"
 
+[Run]
+Filename: "https://paypal.me/ungentilgarcon"; Description: "Optionally support the maintainer with a PayPal donation"; Flags: postinstall shellexec skipifsilent unchecked
+
 [Code]
 var
   Page: TInputOptionWizardPage;
