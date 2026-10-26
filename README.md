@@ -29,14 +29,20 @@ browser:
     Diagnostic logging is optional and off by default. The installer also
     offers an unchecked, optional PayPal support link on its final screen;
     donating is never required.
--   **Linux:** There is no prebuilt Linux native-host download in the current
-    release. Linux users need to build and install it from source; see
-    [Linux native-host setup](README.build-from-source.md#linux-native-host).
+-   **Linux:** The latest release includes an x86-64 package for Debian 12+ and
+    Ubuntu 22.04+ with system-installed Firefox. Download
+    `local-filesystem-links-native-host.deb` from the
+    [GitHub release](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest)
+    and install it with `sudo apt install ./local-filesystem-links-native-host.deb`.
+    Firefox installed as a Snap or Flatpak may not be able to access the
+    system-wide native host. See
+    [Linux native-host setup](README.build-from-source.md#linux-native-host)
+    to build from source.
 
-The browser add-on ZIP is the same whichever operating system you use. Only the
-native host is operating-system specific. The current public release provides a
-Windows installer; check [all release assets](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases)
-before installing to see whether a Linux package has since been published.
+The browser add-on is the same whichever operating system you use. Only the
+native host is operating-system specific. The latest public release provides
+both a Windows installer and a Linux `.deb`. Check [all release assets](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases)
+for the packages available in a given release.
 
 ### Browser support
 
@@ -127,6 +133,11 @@ Linux native-host build details.
 
 -   GPLv3 or later
 -   Mozilla Public License v2 or later
+
+## Contact
+
+For custom development or requests for additional functionality, contact the
+maintainer through [GitHub Issues](https://github.com/ungentilgarcon/webextension_local_filesystem_links/issues).
 
 ## Donations
 

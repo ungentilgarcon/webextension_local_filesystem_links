@@ -92,6 +92,18 @@ class NativeHostTests(unittest.TestCase):
         for extension_id in extension_ids:
             self.assertIn(extension_id, installer_script)
 
+    def test_windows_installer_includes_pyinstaller_internal_runtime(self):
+        installer_script = (
+            NATIVE_HOST_DIR.parent / "build" / "windows" / "InnoSetupScript.iss"
+        ).read_text(encoding="utf-8")
+        host_file_entry = next(
+            line
+            for line in installer_script.splitlines()
+            if line.startswith('Source: "{#HostDirectory}\\*"')
+        )
+        self.assertIn("recursesubdirs", host_file_entry)
+        self.assertIn("createallsubdirs", host_file_entry)
+
     def test_fallback_path_uses_server_and_preserves_encoded_path(self):
         with patch.object(host, "currentOS", "linux"), patch.object(
             host.os.path, "normpath", side_effect=posixpath.normpath

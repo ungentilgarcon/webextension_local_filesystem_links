@@ -43,7 +43,7 @@ Name: EnableLogging; Description: Enable diagnostics (records requested local fi
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "{#HostDirectory}\*"; DestDir: "{app}"
+Source: "{#HostDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#NativeHostRoot}\src\webextension_local_filesystem_links_win.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#NativeHostRoot}\build\windows\vcredist_x86.exe"; DestDir: "{app}"; AfterInstall: RunOtherInstaller; Tasks: Visualc; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

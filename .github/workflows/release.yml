@@ -147,8 +147,36 @@ jobs:
                   if-no-files-found: error
                   retention-days: 1
 
+    linux:
+        needs: validate
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: '3.15'
+                  architecture: x64
+            - name: Install native-host dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install -r native-host/requirements.txt
+            - name: Test native host
+              run: python -m unittest discover -s native-host/tests -v
+            - name: Build Linux native host and Debian package
+              env:
+                  HOST_VERSION: ${{ needs.validate.outputs.host_version }}
+              run: |
+                  (cd native-host && bash build/build.sh)
+                  bash native-host/build/linux/package-deb.sh "$HOST_VERSION" release-assets
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: linux-release-assets
+                  path: release-assets/*
+                  if-no-files-found: error
+                  retention-days: 1
+
     draft-release:
-        needs: [validate, firefox, windows]
+        needs: [validate, firefox, windows, linux]
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -161,6 +189,10 @@ jobs:
               with:
                   name: windows-release-assets
                   path: release-assets
+            - uses: actions/download-artifact@v4
+              with:
+                  name: linux-release-assets
+                  path: release-assets
             - name: Write release notes
               env:
                   ADDON_VERSION: ${{ needs.validate.outputs.addon_version }}
@@ -171,10 +203,13 @@ jobs:
 
                   - Firefox add-on: \`$ADDON_VERSION\` (published on Firefox Add-ons)
                   - Windows native host: \`$HOST_VERSION\`
+                  - Linux native host: \`$HOST_VERSION\` (Debian 12+/Ubuntu 22.04+ amd64 package; Firefox only)
 
                   Install both the Firefox add-on and the native host, then restart Firefox.
                   Windows users can optionally enable diagnostic logging during installation.
-                  Linux has no prebuilt host in this release; Chrome is not supported.
+                  The Linux package is for Debian 12+/Ubuntu 22.04+ amd64 systems with a
+                  system-installed Firefox. Snap/Flatpak Firefox installations may not be able to access it.
+                  Chrome is not supported.
 
                   If this project is useful to you, you can optionally support its
                   maintenance with a [PayPal donation](https://paypal.me/ungentilgarcon).
@@ -184,7 +219,8 @@ jobs:
 
                   - \`firefox-addon.xpi\` is the current publicly listed Firefox add-on.
                   - \`native-app-setup.exe\` is the current Windows installer.
-                  - Versioned copies are provided for both components.
+                  - \`local-filesystem-links-native-host.deb\` is the Linux Firefox native host.
+                  - Versioned copies are provided for each component.
                   EOF
             - uses: softprops/action-gh-release@v2
               with:
