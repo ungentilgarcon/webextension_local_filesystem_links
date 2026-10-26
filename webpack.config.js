@@ -107,8 +107,6 @@ module.exports = {
                                 {},
                                 JSON.parse(content.toString('utf8')),
                                 {
-                                    description:
-                                        process.env.npm_package_description,
                                     version:
                                         process.env.npm_package_version ||
                                         '0.0.1'

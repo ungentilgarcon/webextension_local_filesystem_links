@@ -61,7 +61,7 @@ jobs:
                     --artifacts-dir ./web-ext-artifacts \
                     --api-key "$AMO_JWT_ISSUER" \
                     --api-secret "$AMO_JWT_SECRET" \
-                    --channel listed
+                    --channel unlisted
             - name: Prepare Firefox release assets
               env:
                   ADDON_VERSION: ${{ needs.validate.outputs.addon_version }}

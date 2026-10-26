@@ -1,5 +1,11 @@
 Changelog for Local Filesystem Links
 ====================================
+v0.101.8 (Firefox add-on) / native host v0.2.15
+-----------------------------------------------
+* Added explicit Firefox/Chrome manifest descriptions with installation requirements.
+* Updated packaging so release bundles retain the manifest description reliably.
+* Switched automated signing in CI to AMO unlisted channel for deterministic release artifacts.
+
 v0.101.7 (Firefox add-on) / native host v0.2.14
 -----------------------------------------------
 * Improved Firefox add-on metadata and icon coverage for clearer store and browser presentation.
