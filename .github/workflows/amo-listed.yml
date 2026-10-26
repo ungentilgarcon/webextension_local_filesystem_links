@@ -17,6 +17,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+              with:
+                  path: amo-config
             - uses: actions/checkout@v4
               with:
                   ref: ${{ inputs.ref }}
@@ -51,6 +53,6 @@ jobs:
                     --api-key "$AMO_JWT_ISSUER" \
                     --api-secret "$AMO_JWT_SECRET" \
                     --channel listed \
-                    --amo-metadata ./amo-metadata.json \
+                    --amo-metadata ./amo-config/amo-metadata.json \
                     --upload-source-code ./source-code.tar.gz \
                     --approval-timeout 0
