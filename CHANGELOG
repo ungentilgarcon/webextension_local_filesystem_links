@@ -1,5 +1,11 @@
 Changelog for Local Filesystem Links
 ====================================
+v0.101.7 (Firefox add-on) / native host v0.2.14
+-----------------------------------------------
+* Improved Firefox add-on metadata and icon coverage for clearer store and browser presentation.
+* Updated extension description with key setup/behavior details.
+* Fixed release pipeline Windows native-host version parsing and Python 2 toolchain installation handling.
+
 v0.101.6 (Firefox add-on) / native host v0.2.13
 -----------------------------------------------
 * Updated maintainer credits and first-run setup guidance, including network fallback server configuration.

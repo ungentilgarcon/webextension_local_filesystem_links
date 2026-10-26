@@ -1,8 +1,8 @@
 {
     "title": "Local Filesystem Links",
     "name": "alien-local-filesystem-links",
-    "version": "0.101.6",
-    "description": "Scans pages for file:/// links and makes it possible to open them with the system's file browser.",
+    "version": "0.101.7",
+    "description": "Opens file:// links from Firefox with a native host, including UNC paths, optional fallback server mapping, and reveal/open actions.",
     "main": "index.js",
     "author": "ungentilgarcon",
     "scripts": {
