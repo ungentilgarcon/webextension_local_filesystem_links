@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 
 HOST_PATH = Path(__file__).parents[1] / "src" / "local-link-messaging-host.py"
+NATIVE_HOST_DIR = HOST_PATH.parent
 SPEC = importlib.util.spec_from_file_location("local_messaging_host", HOST_PATH)
 host = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(host)
@@ -71,6 +72,25 @@ class NativeHostTests(unittest.TestCase):
 
         self.assertEqual(network_drive, "g:\\Donnees")
         self.assertEqual(windows_folder, "c:\\windows")
+
+    def test_native_host_manifests_allow_current_and_legacy_addon_ids(self):
+        extension_ids = {
+            "jid1-JAzC7z53jemo5Q@jetpack",
+            "{b0875df6-5b25-4907-a2c1-10ca04249fb8}",
+        }
+        for filename in (
+            "webextension_local_filesystem_links.json",
+            "webextension_local_filesystem_links_win.json",
+        ):
+            manifest_path = NATIVE_HOST_DIR / filename
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertTrue(extension_ids.issubset(manifest["allowed_extensions"]))
+
+        installer_script = (
+            NATIVE_HOST_DIR.parent / "build" / "windows" / "InnoSetupScript.iss"
+        ).read_text(encoding="utf-8")
+        for extension_id in extension_ids:
+            self.assertIn(extension_id, installer_script)
 
     def test_fallback_path_uses_server_and_preserves_encoded_path(self):
         with patch.object(host, "currentOS", "linux"), patch.object(

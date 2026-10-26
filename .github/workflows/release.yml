@@ -47,33 +47,47 @@ jobs:
             - run: npm run lint
             - run: npm run build
             - run: npx web-ext lint --source-dir ./dist
-            - name: Sign Firefox add-on with AMO
+            - name: Download published Firefox add-on from AMO
               env:
-                  AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
-                  AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+                  ADDON_VERSION: ${{ needs.validate.outputs.addon_version }}
               run: |
-                  if [[ -z "$AMO_JWT_ISSUER" || -z "$AMO_JWT_SECRET" ]]; then
-                    echo "::error::Set AMO_JWT_ISSUER and AMO_JWT_SECRET in repository Actions secrets."
+                  listing="$(curl --fail --silent --show-error \
+                    https://addons.mozilla.org/api/v5/addons/addon/local-filesystem-links-reboot/)"
+                  published_version="$(jq -r '.current_version.version // empty' <<< "$listing")"
+                  file_status="$(jq -r '.current_version.file.status // empty' <<< "$listing")"
+                  if [[ "$published_version" != "$ADDON_VERSION" || "$file_status" != "public" ]]; then
+                    echo "::error::AMO must publish add-on version $ADDON_VERSION before creating this release (found $published_version, status $file_status)."
                     exit 1
                   fi
-                  npx web-ext sign \
-                    --source-dir ./dist \
-                    --artifacts-dir ./web-ext-artifacts \
-                    --api-key "$AMO_JWT_ISSUER" \
-                    --api-secret "$AMO_JWT_SECRET" \
-                    --channel unlisted
+                  signed_addon_url="$(jq -r '.current_version.file.url' <<< "$listing")"
+                  expected_hash="$(jq -r '.current_version.file.hash | sub("^sha256:"; "")' <<< "$listing")"
+                  mkdir -p web-ext-artifacts
+                  signed_addon="web-ext-artifacts/local_filesystem_links-${ADDON_VERSION}.xpi"
+                  curl --fail --location --silent --show-error "$signed_addon_url" --output "$signed_addon"
+                  echo "$expected_hash  $signed_addon" | sha256sum --check --status
+                  python3 - "$signed_addon" "$ADDON_VERSION" <<'PY'
+                  import json
+                  import sys
+                  import zipfile
+
+                  package, expected_version = sys.argv[1:]
+                  with zipfile.ZipFile(package) as xpi:
+                      manifest = json.loads(xpi.read("manifest.json"))
+                      addon_id = manifest["browser_specific_settings"]["gecko"]["id"]
+                      if manifest["version"] != expected_version:
+                          raise SystemExit(f"Unexpected Firefox add-on version: {manifest['version']}")
+                      if addon_id != "{b0875df6-5b25-4907-a2c1-10ca04249fb8}":
+                          raise SystemExit(f"Unexpected Firefox add-on ID: {addon_id}")
+                      if not any(name.startswith("META-INF/") for name in xpi.namelist()):
+                          raise SystemExit("AMO XPI is missing Mozilla signature metadata")
+                  PY
             - name: Prepare Firefox release assets
               env:
                   ADDON_VERSION: ${{ needs.validate.outputs.addon_version }}
               run: |
-                  signed_addon="$(find web-ext-artifacts -maxdepth 1 -type f -name '*.xpi' -print -quit)"
-                  if [[ -z "$signed_addon" ]]; then
-                    echo "::error::AMO signing completed without producing an .xpi file."
-                    exit 1
-                  fi
                   mkdir -p release-assets
-                  cp "$signed_addon" "release-assets/local_filesystem_links-${ADDON_VERSION}.xpi"
-                  cp "$signed_addon" release-assets/firefox-addon.xpi
+                  cp "web-ext-artifacts/local_filesystem_links-${ADDON_VERSION}.xpi" "release-assets/local_filesystem_links-${ADDON_VERSION}.xpi"
+                  cp "web-ext-artifacts/local_filesystem_links-${ADDON_VERSION}.xpi" release-assets/firefox-addon.xpi
             - uses: actions/upload-artifact@v4
               with:
                   name: firefox-release-assets
@@ -155,7 +169,7 @@ jobs:
                   cat > release-notes.md <<EOF
                   ## Components
 
-                  - Firefox add-on: \`$ADDON_VERSION\` (signed by Firefox Add-ons)
+                  - Firefox add-on: \`$ADDON_VERSION\` (published on Firefox Add-ons)
                   - Windows native host: \`$HOST_VERSION\`
 
                   Install both the Firefox add-on and the native host, then restart Firefox.
@@ -168,7 +182,7 @@ jobs:
 
                   ## Assets
 
-                  - \`firefox-addon.xpi\` is the current signed Firefox add-on.
+                  - \`firefox-addon.xpi\` is the current publicly listed Firefox add-on.
                   - \`native-app-setup.exe\` is the current Windows installer.
                   - Versioned copies are provided for both components.
                   EOF

@@ -222,7 +222,8 @@ begin
       '  "path": "' + HostPath + '",' + #13#10 +
       '  "type": "stdio",' + #13#10 +
       '  "allowed_extensions": [' + #13#10 +
-      '    "jid1-JAzC7z53jemo5Q@jetpack"' + #13#10 +
+      '    "jid1-JAzC7z53jemo5Q@jetpack",' + #13#10 +
+      '    "{b0875df6-5b25-4907-a2c1-10ca04249fb8}"' + #13#10 +
       '  ]' + #13#10 +
       '}' + #13#10;
     if not SaveStringToFile(ManifestPath, UTF8Encode(ManifestContents), False) then

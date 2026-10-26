@@ -1,5 +1,11 @@
 Changelog for Local Filesystem Links
 ====================================
+v0.101.11 (Firefox add-on) / native host v0.2.17
+------------------------------------------------
+* Added support for Windows drive paths used directly as link targets.
+* Updated native-host manifests to authorize the current Firefox add-on ID while retaining the legacy ID.
+* Prepared the GitHub release to package the already-published AMO XPI with fresh Windows host assets.
+
 v0.101.10 (Firefox add-on)
 -------------------------
 * Bumped the add-on version for public AMO submission under the current Firefox add-on ID.
