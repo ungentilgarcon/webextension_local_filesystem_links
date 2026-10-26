@@ -8,16 +8,17 @@ add-on and the native host for your operating system.**
 
 ### 1. Install the Firefox add-on
 
--   [Install Local Filesystem Links from Firefox Add-ons (AMO)](https://addons.mozilla.org/firefox/addon/local-filesystem-links/).
+-   [Install the current Local Filesystem Links listing from Firefox Add-ons (AMO)](https://addons.mozilla.org/firefox/addon/local-filesystem-links-reboot/).
 -   Alternatively, download the [signed Firefox add-on](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest/download/firefox-addon.xpi)
     or browse all assets in the [latest GitHub release](https://github.com/ungentilgarcon/webextension_local_filesystem_links/releases/latest).
 
 **This source build uses a new Firefox add-on ID** because the previous ID is
 owned by the existing AMO listing. It will be a separate installation and will
 not automatically update existing installations. The AMO link above is for the
-previous add-on ID and its listing is not updated by the source build. Public
-availability of the new ID depends on its separate AMO listing submission and
-Mozilla review.
+current listing, published under the current maintainer `ungentilgarcon`. The
+[older AMO listing](https://addons.mozilla.org/firefox/addon/local-filesystem-links/)
+uses the previous add-on ID, credits its historical authors, and will not
+automatically update to this version.
 
 ### 2. Install the native host
 
@@ -119,5 +120,6 @@ Linux native-host build details.
 
 ## Donations
 
-ungentilgarcon is the current maintainer and main contributor. To support
-ongoing development and maintenance, [contribute via PayPal](https://paypal.me/ungentilgarcon).
+`ungentilgarcon` is the current maintainer and main contributor. If this add-on
+is useful to you, please support ongoing development and maintenance with a
+[PayPal contribution to the current maintainer](https://paypal.me/ungentilgarcon).

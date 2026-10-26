@@ -1,8 +1,19 @@
 {
+    "name": {
+        "en-US": "Local Filesystem Links by ungentilgarcon"
+    },
     "summary": {
         "en-US": "Open local and network file links from Firefox using the companion native host."
     },
+    "description": {
+        "en-US": "Local Filesystem Links lets Firefox open file:// links using this computer's normal file handler or file manager. Install the companion native host as well as this add-on.\n\nFeatures include opening or revealing linked files, support for Windows drive and network paths, and an optional fallback server for unqualified network links. Link handling can be restricted with the add-on's page whitelist.\n\nFile paths are handled locally through Firefox native messaging; this add-on does not send browsing data or file contents to a remote service.\n\nMaintained and published by ungentilgarcon, the current maintainer and main contributor. If this add-on is useful to you, please support ongoing development with a PayPal contribution: [Donate to the maintainer](https://paypal.me/ungentilgarcon)."
+    },
+    "homepage": {
+        "en-US": "https://github.com/ungentilgarcon/webextension_local_filesystem_links"
+    },
+    "contributions_url": "https://paypal.me/ungentilgarcon",
     "categories": ["other"],
+    "is_experimental": false,
     "version": {
         "license": "MPL-2.0",
         "approval_notes": "This add-on handles file:// links on pages permitted by the user's whitelist and passes the selected path to the separately installed native messaging host so the operating system can open or reveal it. It does not transmit browsing data or file contents to a remote service. The source archive is included with this submission."

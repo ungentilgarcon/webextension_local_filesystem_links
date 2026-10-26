@@ -1,0 +1,36 @@
+name: Update AMO listing details
+
+on:
+    workflow_dispatch:
+        inputs:
+            apply:
+                description: Apply maintainer, description, and donation-link updates
+                required: true
+                default: false
+                type: boolean
+
+permissions:
+    contents: read
+
+jobs:
+    update:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+            - name: Verify publisher identity and listing ownership
+              env:
+                  AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+                  AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+                  EXPECTED_AMO_USERNAME: ${{ github.repository_owner }}
+              run: node .github/scripts/amo-listing.mjs --verify-only
+            - name: Update AMO listing metadata
+              if: ${{ inputs.apply }}
+              env:
+                  AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+                  AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+                  EXPECTED_AMO_USERNAME: ${{ github.repository_owner }}
+                  AMO_METADATA_PATH: amo-metadata.json
+              run: node .github/scripts/amo-listing.mjs
