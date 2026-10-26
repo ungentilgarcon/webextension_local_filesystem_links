@@ -37,7 +37,7 @@ jobs:
             - name: Validate Firefox add-on
               run: npx --yes web-ext@10 lint --source-dir ./submission-source/dist
             - name: Prepare source archive
-              run: git -C submission-source archive --format=tar.gz --output=source-code.tar.gz HEAD
+              run: git -C submission-source archive --format=tar.gz --output="$GITHUB_WORKSPACE/source-code.tar.gz" HEAD
             - name: Submit listed version to AMO
               env:
                   AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
@@ -54,5 +54,5 @@ jobs:
                     --api-secret "$AMO_JWT_SECRET" \
                     --channel listed \
                     --amo-metadata ./amo-config/amo-metadata.json \
-                    --upload-source-code ./source-code.tar.gz \
+                    --upload-source-code "$GITHUB_WORKSPACE/source-code.tar.gz" \
                     --approval-timeout 0
