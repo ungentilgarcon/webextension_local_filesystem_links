@@ -153,3 +153,189 @@ repository or in workflow files.
 
 Do not reuse a published tag. For another release, increment the native-host
 version and create a new matching tag.
+
+### Publishing through an authenticated corporate proxy
+
+Git can use the current user's Windows integrated credentials to authenticate
+to an NTLM/Kerberos proxy. Configure negotiation only for this repository, then
+test the remote before pushing:
+
+```powershell
+git config --local http.proxyAuthMethod negotiate
+git ls-remote origin HEAD
+$tag = 'vX.Y.Z' # Replace with the new release tag.
+git push origin master $tag
+```
+
+The proxy address still comes from the normal `HTTPS_PROXY`/`HTTP_PROXY`
+environment settings. Do not put proxy usernames or passwords in Git config.
+`Invoke-RestMethod` and `Invoke-WebRequest` can use the signed-in Windows
+credentials explicitly:
+
+```powershell
+$proxy = 'http://proxyweb.villeurbanne.fr:3129'
+Invoke-RestMethod `
+    -Uri 'https://api.github.com/rate_limit' `
+    -Proxy $proxy `
+    -ProxyUseDefaultCredentials
+```
+
+If GitHub CLI reports `Proxy Authentication Required` or its saved token is
+invalid, use GitHub's official CLI OAuth device flow through that authenticated
+PowerShell proxy. The CLI's public OAuth client ID is
+`178c6fc778ccc68e1d6a`. Request the `repo` scope for release management (add
+`workflow` if dispatching Actions workflows). POST to
+`https://github.com/login/device/code` with the client ID and scope, display the
+returned `verification_uri` and `user_code`, then poll
+`https://github.com/login/oauth/access_token` with the device code and
+`urn:ietf:params:oauth:grant-type:device_code` grant until the user approves.
+Send those requests with `-Proxy $proxy -ProxyUseDefaultCredentials`.
+
+Start the device flow with:
+
+```powershell
+$oauthHeaders = @{ Accept = 'application/json' }
+$clientId = '178c6fc778ccc68e1d6a'
+$scope = 'repo' # Add ' workflow' if dispatching an Actions workflow.
+$device = Invoke-RestMethod `
+    -Method Post `
+    -Uri 'https://github.com/login/device/code' `
+    -Proxy $proxy `
+    -ProxyUseDefaultCredentials `
+    -ContentType 'application/x-www-form-urlencoded' `
+    -Headers $oauthHeaders `
+    -Body @{ client_id = $clientId; scope = $scope }
+
+Write-Host "Open $($device.verification_uri) and enter $($device.user_code)"
+Start-Process $device.verification_uri
+```
+
+After browser approval, poll the token endpoint until it returns `access_token`.
+This loop observes GitHub's polling interval and device-code expiry:
+
+```powershell
+$pollInterval = [int]$device.interval
+$expiresAt = (Get-Date).AddSeconds([int]$device.expires_in)
+do {
+    Start-Sleep -Seconds $pollInterval
+    $tokenResponse = Invoke-RestMethod `
+        -Method Post `
+        -Uri 'https://github.com/login/oauth/access_token' `
+        -Proxy $proxy `
+        -ProxyUseDefaultCredentials `
+        -ContentType 'application/x-www-form-urlencoded' `
+        -Headers $oauthHeaders `
+        -Body @{
+            client_id = $clientId
+            device_code = $device.device_code
+            grant_type = 'urn:ietf:params:oauth:grant-type:device_code'
+        }
+    if ($tokenResponse.access_token) {
+        break
+    }
+    switch ($tokenResponse.error) {
+        'authorization_pending' { continue }
+        'slow_down' { $pollInterval += 5 }
+        'expired_token' { throw 'The device code expired; start a new flow.' }
+        'access_denied' { throw 'Device authorization was denied.' }
+        default { throw "Device flow failed: $($tokenResponse.error)" }
+    }
+} while ((Get-Date) -lt $expiresAt)
+if (-not $tokenResponse.access_token) {
+    throw 'The device code expired before authorization completed.'
+}
+$token = $tokenResponse.access_token
+$headers = @{
+    Accept = 'application/vnd.github+json'
+    Authorization = "Bearer $token"
+    'X-GitHub-Api-Version' = '2022-11-28'
+}
+```
+
+Keep the returned access token only in the PowerShell process; do not paste it
+into chat, command-line arguments, logs, or repository files. Use it as a
+Bearer token in `Invoke-RestMethod` request headers. Verify
+`GET https://api.github.com/user` returns `ungentilgarcon` before making
+changes, and remove the token variable when finished.
+
+GitHub may return 404 for a draft release at
+`GET /repos/OWNER/REPO/releases/tags/TAG`, even when authenticated. Instead,
+list drafts with `GET /repos/OWNER/REPO/releases?per_page=100` and select the
+entry whose `tag_name` matches. Inspect `draft`, `assets`, and each asset's
+`digest` before publishing. For AMO packages, compare the Firefox asset digest
+with `current_version.file.hash` from the AMO API. Publish only the intended
+draft by sending `PATCH /repos/OWNER/REPO/releases/RELEASE_ID` with
+`{"draft":false,"prerelease":false,"make_latest":"true"}`. Verify the returned
+release URL, draft state, and assets afterward.
+
+Example for inspecting and publishing a verified draft after setting `$headers`
+from the device-flow response above:
+
+```powershell
+$owner = 'ungentilgarcon'
+$repo = 'webextension_local_filesystem_links'
+$tag = 'vX.Y.Z' # Select the release you intend to publish.
+$user = Invoke-RestMethod `
+    -Uri 'https://api.github.com/user' `
+    -Proxy $proxy `
+    -ProxyUseDefaultCredentials `
+    -Headers $headers
+if ($user.login -ne $owner) {
+    throw "Authenticated as unexpected GitHub account: $($user.login)"
+}
+$allReleases = Invoke-RestMethod `
+    -Uri "https://api.github.com/repos/$owner/$repo/releases?per_page=100" `
+    -Proxy $proxy `
+    -ProxyUseDefaultCredentials `
+    -Headers $headers
+$release = $allReleases |
+    Where-Object tag_name -eq $tag |
+    Select-Object -First 1
+if (-not $release -or -not $release.draft) {
+    throw "Expected draft release $tag was not found."
+}
+$release.assets | Select-Object name, digest, size
+
+$amo = Invoke-RestMethod `
+    -Uri 'https://addons.mozilla.org/api/v5/addons/addon/local-filesystem-links-reboot/' `
+    -Proxy $proxy `
+    -ProxyUseDefaultCredentials
+$amoHash = $amo.current_version.file.hash -replace '^sha256:', ''
+$expectedDigest = "sha256:$amoHash"
+$requiredAssets = @(
+    'firefox-addon.xpi'
+    "local_filesystem_links-$($amo.current_version.version).xpi"
+    'native-app-setup.exe'
+    "native-app-setup-$($tag.TrimStart('v')).exe"
+)
+foreach ($name in $requiredAssets) {
+    $asset = $release.assets | Where-Object name -eq $name | Select-Object -First 1
+    if (-not $asset) {
+        throw "Release is missing required asset: $name"
+    }
+    if ($name.EndsWith('.xpi') -and $asset.digest -ne $expectedDigest) {
+        throw "Firefox asset digest does not match AMO: $name"
+    }
+}
+
+$published = Invoke-RestMethod `
+    -Method Patch `
+    -Uri "https://api.github.com/repos/$owner/$repo/releases/$($release.id)" `
+    -Proxy $proxy `
+    -ProxyUseDefaultCredentials `
+    -Headers $headers `
+    -ContentType 'application/json' `
+    -Body (@{ draft = $false; prerelease = $false; make_latest = 'true' } |
+        ConvertTo-Json -Compress)
+if ($published.draft) {
+    throw "GitHub did not publish $tag."
+}
+$published.html_url
+$headers.Clear()
+$token = $null
+$tokenResponse = $null
+$device = $null
+```
+
+This method was used successfully to publish GitHub release `v0.2.17` through
+the corporate proxy.
