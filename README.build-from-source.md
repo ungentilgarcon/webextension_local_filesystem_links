@@ -106,8 +106,8 @@ this workflow.
 The release workflow signs the extension as **unlisted** for GitHub downloads.
 To submit a version for public discovery on Firefox Add-ons, run the separate
 **Submit Firefox add-on to AMO** workflow from the repository's Actions page.
-Enter the release tag to submit (for example, `v0.2.16`). This uses the
-`amo-metadata.json` listing details and includes a source archive. Mozilla
+Enter the branch or commit containing the add-on version to submit. This uses
+the `amo-metadata.json` listing details and includes a source archive. Mozilla
 validates and reviews the submission; a successful upload does not mean the
 listing is immediately approved or publicly visible.
 

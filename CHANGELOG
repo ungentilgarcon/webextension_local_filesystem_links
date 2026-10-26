@@ -1,5 +1,9 @@
 Changelog for Local Filesystem Links
 ====================================
+v0.101.10 (Firefox add-on)
+-------------------------
+* Bumped the add-on version for public AMO submission under the current Firefox add-on ID.
+
 v0.101.9 (Firefox add-on) / native host v0.2.16
 -----------------------------------------------
 * Migrated the native host and Windows build toolchain from Python 2.7 to Python 3.15.

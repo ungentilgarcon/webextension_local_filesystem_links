@@ -6,7 +6,7 @@ on:
             ref:
                 description: Git tag or ref to submit
                 required: true
-                default: v0.2.16
+                default: master
                 type: string
 
 permissions:
