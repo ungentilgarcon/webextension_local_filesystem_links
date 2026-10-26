@@ -62,6 +62,16 @@ class NativeHostTests(unittest.TestCase):
         self.assertEqual(drive_path, "C:\\Documents\\Dossier été.docx")
         self.assertEqual(unc_path, "\\\\dfsburo\\Donnees\\Dossier partage.docx")
 
+    def test_direct_windows_drive_paths_are_normalized(self):
+        with patch.object(host, "currentOS", "win32"), patch.object(
+            host.os.path, "normpath", side_effect=ntpath.normpath
+        ):
+            network_drive = host.preparePath("g:\\Donnees\\")
+            windows_folder = host.preparePath("c:\\windows\\")
+
+        self.assertEqual(network_drive, "g:\\Donnees")
+        self.assertEqual(windows_folder, "c:\\windows")
+
     def test_fallback_path_uses_server_and_preserves_encoded_path(self):
         with patch.object(host, "currentOS", "linux"), patch.object(
             host.os.path, "normpath", side_effect=posixpath.normpath

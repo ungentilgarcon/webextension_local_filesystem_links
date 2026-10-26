@@ -1,14 +1,14 @@
 'use strict';
 
+const {
+    isLocalFileLinkHref,
+    getNativeHostUrl
+} = require('./helpers/localFileLinks');
+
 (function fileLinkAddon($) {
     $.noConflict();
 
-    var fileLinkSelectors = [
-            'a[href^="file:"]'
-            /*'a[href^="smb://"]',
-            'a[href^="afp://"]'*/
-        ],
-        appTextMessages = {
+    var appTextMessages = {
             // every constant text we're showing the user
             // e.g. tooltip text constants
         },
@@ -20,15 +20,23 @@
         currentIconClass, // folder or arrow?
         disconnectObserver; // function to stop observer
 
+    function isLocalFileLink(element) {
+        return isLocalFileLinkHref(element.getAttribute('href'));
+    }
+
+    function localFileLinks() {
+        return $('a[href]').filter(function() {
+            return isLocalFileLink(this);
+        });
+    }
+
     function updateLinkTooltip() {
         var tooltipText =
             options.revealOpenOption == 'O'
                 ? appTextMessages.tooltips.linkText
                 : appTextMessages.tooltips.openFolder;
 
-        $('a')
-            .filter(fileLinkSelectors.join(', '))
-            .attr('title', (i, val) => val || tooltipText);
+        localFileLinks().attr('title', (i, val) => val || tooltipText);
     }
 
     /*
@@ -44,7 +52,7 @@
             $container.addClass(currentIconClass);
             // console.log('added class', $container);
 
-            updateLink($(fileLinkSelectors.join(', ')));
+            updateLink(localFileLinks());
         } else {
             removeLinkIcons();
         }
@@ -82,9 +90,7 @@
                 removeLinkIcons();
 
                 // remove tooltips
-                $('a')
-                    .filter(fileLinkSelectors.join(', '))
-                    .attr('title', '');
+                localFileLinks().attr('title', '');
 
                 // disconnect observer
                 disconnectObserver();
@@ -125,7 +131,7 @@
         updateLinkTooltip();
 
         if (options.enableLinkIcons) {
-            updateLink($(fileLinkSelectors.join(', ')));
+            updateLink(localFileLinks());
         }
     }
 
@@ -161,9 +167,9 @@
             e.target.nodeType === Node.ELEMENT_NODE
                 ? e.target
                 : e.target.parentElement;
-        const link = target && target.closest(fileLinkSelectors.join(', '));
+        const link = target && target.closest('a[href]');
 
-        if (!link) {
+        if (!link || !isLocalFileLink(link)) {
             return;
         }
 
@@ -176,7 +182,7 @@
             // removed decodeURIComponent because env. var. failed
             // --> decoding needed for accents
             message: 'hello',
-            url: decodeURIComponent(link.href),
+            url: getNativeHostUrl(link.getAttribute('href'), link.href),
             reveal: options.revealOpenOption == 'O' ? false : true,
             directOpen: options.revealOpenOption == 'D'
         });
@@ -277,32 +283,46 @@
      */
     function createObserver() {
         // select target of observe
-        var target = document.querySelectorAll(fileLinkSelectors.join(', '));
+        var target = document.querySelectorAll('a[href]');
 
         // Create an observer instance
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                const $changedEl = $(mutation.target)
-                    .filter('a')
-                    .filter(fileLinkSelectors.join(', '));
+                const $changedEl = $(mutation.target).filter('a[href]');
 
                 if (mutation.type === 'attributes') {
-                    // observed href change
-                    // remove previous icon
-                    $changedEl.next('.' + $icon.attr('class')).remove();
-                    // add new icons so we have the correct data at the icon
-                    updateLink($changedEl);
+                    $changedEl
+                        .next('.aliensun-link-icon,.aliensun-link-icon-arrow')
+                        .remove();
+                    if ($changedEl.length && isLocalFileLink($changedEl[0])) {
+                        updateLinkTooltip();
+                        if (options.enableLinkIcons) {
+                            updateLink($changedEl);
+                        }
+                    } else if ($changedEl.length) {
+                        const title = $changedEl.attr('title');
+                        if (
+                            title === appTextMessages.tooltips.linkText ||
+                            title === appTextMessages.tooltips.openFolder
+                        ) {
+                            $changedEl.removeAttr('title');
+                        }
+                    }
                 } else if (mutation.type === 'childList') {
                     // get elements that are with-out icon - avoid multiple icons
-                    let $addedNodes = $(mutation.addedNodes).find(
-                        fileLinkSelectors.join(', ')
-                    );
+                    let $addedNodes = $(mutation.addedNodes)
+                        .find('a[href]')
+                        .filter(function() {
+                            return isLocalFileLink(this);
+                        });
 
                     if ($addedNodes.length == 0) {
                         // no chillds with a file link --> check added element
-                        $addedNodes = $(mutation.addedNodes).filter(
-                            fileLinkSelectors.join(', ')
-                        );
+                        $addedNodes = $(mutation.addedNodes)
+                            .filter('a[href]')
+                            .filter(function() {
+                                return isLocalFileLink(this);
+                            });
                     }
 
                     // Check that next element is not a file link icon

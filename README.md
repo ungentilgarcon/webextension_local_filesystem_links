@@ -80,16 +80,24 @@ The computer must still have network access and permission to reach the share.
 
 ## Using the add-on
 
-The add-on detects `file://` links on pages where it is enabled. Clicking a link
-opens the file with the operating system's associated application. The toolbar
-settings let you choose whether the default link action opens a file or reveals
-it in its containing folder, and let you restrict link handling with a page
-whitelist. A whitelist value of `*` enables all pages; an empty value disables
-all pages.
+The add-on detects `file://` links and direct Windows drive-path links on pages
+where it is enabled. Clicking a link opens the file with the operating system's
+associated application. The toolbar settings let you choose whether the default
+link action opens a file or reveals it in its containing folder, and let you
+restrict link handling with a page whitelist. A whitelist value of `*` enables
+all pages; an empty value disables all pages.
+
+Direct Windows paths must be the link target (`href`), for example:
+
+```html
+<a href="G:\Donnees\">G:\Donnees\</a>
+```
 
 Supported path details include:
 
 -   Windows drive-letter links, for example `file:///C:/Documents/file.docx`.
+-   Windows drive paths used directly as link targets, for example
+    `G:\Donnees\` or `C:\Windows\`.
 -   Windows network links, for example `file://server/share/folder/file.docx`.
 -   Percent-encoded filename characters such as `%20` for spaces.
 -   An optional fallback server for unqualified network links, as described above.

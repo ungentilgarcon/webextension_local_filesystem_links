@@ -1,6 +1,6 @@
 {
     "name": "Local Filesystem Links",
-    "description": "Open local and network file:// links through a native host. Requires the companion native app installation.",
+    "description": "Open local and network file:// links and direct Windows drive paths through a native host. Requires the companion native app installation.",
     "author": "ungentilgarcon",
     "options_ui": {
         "page": "options.html"
