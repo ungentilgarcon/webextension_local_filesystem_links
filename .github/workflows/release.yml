@@ -86,20 +86,18 @@ jobs:
         runs-on: windows-2022
         steps:
             - uses: actions/checkout@v4
-            - name: Install Python 2.7 toolchain
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: '3.15'
+                  architecture: x64
+            - name: Install native-host dependencies
               shell: pwsh
               run: |
-                  choco install python2 --version 2.7.18 --yes --no-progress
-                  if (-not (Test-Path 'C:\Python27\python.exe')) {
-                    throw 'Python 2.7 was not installed at C:\Python27\python.exe'
-                  }
-                  "C:\Python27" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-                  "C:\Python27\Scripts" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-            - name: Install legacy native-host dependencies
+                  python -m pip install --upgrade pip
+                  python -m pip install -r native-host/requirements.txt
+            - name: Test native host
               shell: pwsh
-              run: |
-                  & 'C:\Python27\python.exe' -m pip install --upgrade "pip<21"
-                  & 'C:\Python27\python.exe' -m pip install -r native-host/requirements.txt
+              run: python -m unittest discover -s native-host/tests -v
             - name: Build Windows native host
               shell: bash
               run: |

@@ -13,26 +13,19 @@ def generateReturn(val, text):
     return res
 
 def GetBinaryType(fileName):
-    f=open(fileName, "rb")
+    with open(fileName, "rb") as executable:
+        if executable.read(2) != b"MZ":
+            return generateReturn(False, "Not an EXE file")
 
-    s=f.read(2)
-    if s!="MZ":
-        return generateReturn(False, "Not an EXE file")
-    else:
-        f.seek(60)
-        s=f.read(4)
-        header_offset=struct.unpack("<L", s)[0]
-        f.seek(header_offset+4)
-        s=f.read(2)
-        machine=struct.unpack("<H", s)[0]
+        executable.seek(60)
+        header_offset = struct.unpack("<L", executable.read(4))[0]
+        executable.seek(header_offset + 4)
+        machine = struct.unpack("<H", executable.read(2))[0]
 
-        if machine==IMAGE_FILE_MACHINE_I386:
-            return generateReturn(True, "IA-32 (32-bit x86)") # print "IA-32 (32-bit x86)"
-        elif machine==IMAGE_FILE_MACHINE_IA64:
-            return generateReturn(True, "IA-64 (Itanium)") # print "IA-64 (Itanium)"
-        elif machine==IMAGE_FILE_MACHINE_AMD64:
-            return generateReturn(True, "AMD64 (64-bit x86)") # print "AMD64 (64-bit x86)"
-        else:
-            return generateReturn(True, "Unknown architecture") # print "Unknown architecture"
-
-    f.close()
+    if machine == IMAGE_FILE_MACHINE_I386:
+        return generateReturn(True, "IA-32 (32-bit x86)")
+    if machine == IMAGE_FILE_MACHINE_IA64:
+        return generateReturn(True, "IA-64 (Itanium)")
+    if machine == IMAGE_FILE_MACHINE_AMD64:
+        return generateReturn(True, "AMD64 (64-bit x86)")
+    return generateReturn(True, "Unknown architecture")

@@ -9,7 +9,7 @@
 import struct
 import sys
 import json
-import urllib
+from urllib.parse import unquote
 import subprocess
 from subprocess import PIPE
 import os
@@ -91,13 +91,9 @@ fileExplorer = fileExplorers['linux'][1] # default to linux
 # On Windows, the default I/O mode is O_TEXT. Set this to O_BINARY
 # to avoid unwanted modifications of the input/output streams.
 if currentOS == "win32":
-  # import win32api # if active state python is installed or install pywin32 package seperately
-  import os, msvcrt
-  import sys
-  # from get_binary_type import GetBinaryType
+  import msvcrt
   import pywintypes
   import win32api
-  from subprocess_fix import Popen
 
   msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
   msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
@@ -118,7 +114,7 @@ if currentOS == "win32":
     else:
       return executable == fpath.lower()
 else:
-  from subprocess import Popen
+  Popen = subprocess.Popen
   
   # helper to check if cmd exists (e.g. Nautilus or Dolphin)
   def cmd_exists(cmd):
@@ -146,11 +142,10 @@ else:
 
 # Helper function that sends a message to the webapp.
 def send_message(message):
-   # Write message size.
-  sys.stdout.write(struct.pack('I', len(message)))
-  # Write the message itself.
-  sys.stdout.write(message)
-  sys.stdout.flush()
+  output = sys.stdout.buffer
+  output.write(struct.pack('<I', len(message)))
+  output.write(message)
+  output.flush()
 
 def preparePath(pathStr):
   # replace backslashes to slashes
@@ -170,10 +165,7 @@ def preparePath(pathStr):
   else:
       pathStr = re.sub(r'[a-z]*:[\/]{2}', '', pathStr) # remove file://
 
-  if isinstance(pathStr, unicode):
-    pathStr = urllib.unquote(pathStr.encode('utf-8')).decode('utf-8')
-  else:
-    pathStr = urllib.unquote(pathStr).decode('utf-8')
+  pathStr = unquote(pathStr, encoding='utf-8', errors='strict')
   if sys.platform.startswith('linux') or sys.platform == 'darwin':
     # hack to have ~ path working in Linux & mac os
     # one or two slashes before ~ // stop at first / after ~
@@ -325,15 +317,28 @@ def process_message(data):
 
 # Thread that reads messages from the webapp.
 def read_thread_func(queue):
-  text_length_bytes = sys.stdin.read(4)
+  input_stream = sys.stdin.buffer
+  text_length_bytes = input_stream.read(4)
   if len(text_length_bytes) == 0:
     logger.info('Native messaging input closed before receiving a request')
     sys.exit(0)
 
   data = {}
   try:
-    text_length = struct.unpack("i", text_length_bytes)[0]
-    text = sys.stdin.read(text_length).decode('utf-8')
+    while len(text_length_bytes) < 4:
+      more_bytes = input_stream.read(4 - len(text_length_bytes))
+      if not more_bytes:
+        raise EOFError('Incomplete native messaging frame header')
+      text_length_bytes += more_bytes
+
+    text_length = struct.unpack('<I', text_length_bytes)[0]
+    payload = bytearray()
+    while len(payload) < text_length:
+      chunk = input_stream.read(text_length - len(payload))
+      if not chunk:
+        raise EOFError('Incomplete native messaging frame payload')
+      payload.extend(chunk)
+    text = payload.decode('utf-8')
     data = json.loads(text)
     logger.debug('Decoded native messaging request: %r', data)
     process_message(data)

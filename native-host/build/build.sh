@@ -58,6 +58,7 @@ mkdir -p $BIN_DIR
 # onefile not working (not correctly bundled)
 # --> onedir better (faster start - no extracting to temp. location of python required)
 pyinstaller ./src/local-link-messaging-host.py \
+    --noconfirm \
     --onedir \
     --distpath=$BIN_DIR \
     --icon ./src/addon_icon_48.ico \

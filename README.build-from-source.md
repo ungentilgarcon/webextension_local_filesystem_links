@@ -25,33 +25,46 @@ messaging support, so local file links will not work end-to-end in Chrome.
 
 ## Build the Windows native host
 
-Install the Python dependencies from `native-host/requirements.txt`, and make
-sure PyInstaller and Inno Setup 6 are available. From `native-host/`, build the
-host and compile the installer:
+Install 64-bit Python 3.15 and Inno Setup 6. During Python setup, enable
+**Add Python to PATH**. From the repository root, install the native-host
+dependencies and run its tests:
+
+```powershell
+py -3.15 -m pip install -r native-host\requirements.txt
+py -3.15 -m unittest discover -s native-host\tests -v
+```
+
+Then build the host from `native-host/` using Git Bash (installed with Git for
+Windows) and compile the installer from PowerShell:
 
 ```sh
+cd native-host
 sh build/build.sh
-ISCC.exe build/windows/InnoSetupScript.iss
+```
+
+```powershell
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "native-host\build\windows\InnoSetupScript.iss"
 ```
 
 The installer is written to `native-host/bin/win32/native-app-setup.exe`. It
 registers the absolute host executable path for Firefox. Optional diagnostic
-logging is disabled by default and can be enabled in the installer.
+logging is disabled by default and can be enabled in the installer. If the
+Python launcher or `pyinstaller` command is not found, rerun Python setup and
+enable **Add Python to PATH**, then open a new terminal.
 
 ## Linux native host
 
 The current GitHub release does not include a prebuilt Linux native host. The
-Linux build uses the legacy PyInstaller 3.3.1 toolchain and Python 2.7 pinned in
-`native-host/requirements.txt`; building may require an older compatible Linux
-environment. The native host currently registers with Firefox, not Chrome.
+Linux build uses Python 3.15 and the PyInstaller version pinned in
+`native-host/requirements.txt`. The native host currently registers with
+Firefox, not Chrome.
 
-On a Linux build machine, install Node.js/npm, Python 2.7, and a Python 2
-compatible version of pip. Install the Linux build dependency (the
-Windows-only `pypiwin32` dependency in the shared requirements file is not
-needed), then build from the repository's `native-host/` directory:
+On a Linux build machine, install Node.js/npm and Python 3.15. Install the
+native-host requirements, then build from the repository's `native-host/`
+directory:
 
 ```sh
-python2 -m pip install "PyInstaller==3.3.1"
+python3.15 -m pip install -r requirements.txt
 npm install
 npm run build:unix
 ```
@@ -103,15 +116,15 @@ them in the repository or in workflow files.
 
 1. Update the extension version in the root `package.json` and the native-host
    version in `native-host/package.json`. The release tag must exactly match
-   the native-host version, for example `v0.2.13`; the add-on version is
+   the native-host version, for example `v0.2.16`; the add-on version is
    recorded separately in the release notes and asset filename.
 2. Update `CHANGELOG`, run the relevant builds/tests, commit, and push the
    release changes to `master`.
 3. Create and push the version tag from that commit:
 
     ```sh
-    git tag v0.2.13
-    git push origin v0.2.13
+    git tag v0.2.16
+    git push origin v0.2.16
     ```
 
 4. In **Actions**, check that the Firefox signing and Windows installer build
