@@ -31,7 +31,7 @@ PACKAGE_VERSION=$(cat package.json \
   | grep version \
   | head -1 \
   | awk -F: '{ print $2 }' \
-  | sed 's/[",]//g')
+  | sed 's/[",[:space:]]//g')
 
 echo $PACKAGE_VERSION # return 0.1.0 - debugging output
 
@@ -39,12 +39,16 @@ echo $PACKAGE_VERSION # return 0.1.0 - debugging output
 # filevers=(2, 0, 4, 0),
 # prodvers=(2, 0, 4, 0),
 #IN="bla@some.com;john@home.com" # e.g. 3.2.1 --> [0] = 3, [1] = 2, [2] = 1
-versionArr=${PACKAGE_VERSION//./ } #
+IFS=. read -r versionMajor versionMinor versionPatch extraVersionParts <<< "$PACKAGE_VERSION"
+if [[ ! "$versionMajor" =~ ^[0-9]+$ || ! "$versionMinor" =~ ^[0-9]+$ || ! "$versionPatch" =~ ^[0-9]+$ || -n "$extraVersionParts" ]]; then
+    echo "Invalid native host version: $PACKAGE_VERSION" >&2
+    exit 1
+fi
 
 {
   printf "$VERSION_INFO\n"
-  printf "  filevers=(%s, %s, %s, 0),\n" ${versionArr[0]} ${versionArr[1]} ${versionArr[2]}
-  printf "  prodvers=(%s, %s, %s, 0),\n" ${versionArr[0]} ${versionArr[1]} ${versionArr[2]}
+  printf "  filevers=(%s, %s, %s, 0),\n" "$versionMajor" "$versionMinor" "$versionPatch"
+  printf "  prodvers=(%s, %s, %s, 0),\n" "$versionMajor" "$versionMinor" "$versionPatch"
   echo "))"
 } >version.rc
 
